@@ -71,7 +71,7 @@ data/
   primary/      小学三科题库 + 图谱编排表 graph_map.json
   primary/exams/ 小学期中/期末卷（非计算题；计算题由脚本自动生成）
   junior/       初中中考仿真卷（知识点 + 试卷 + 题目，按地区分卷）
-scripts/        bootstrap / 导入 / 关联 / 小学图谱 / 期中期末生成 / 中考导入 / 模拟测评
+scripts/        bootstrap / 导入 / 关联 / 小学图谱 / 期中期末生成 / 中考导入 / 模拟测评 / 推送
 src/
   knowledge_graph/  九科知识图谱构建（各科一个 builder）
   paper_parser/     docx / pdf / OMML→LaTeX 解析
@@ -116,6 +116,24 @@ docker compose up -d --build      # 构建时顺手把数据库建好
 | `BIND_HOST` / `BIND_PORT` | `0.0.0.0` / `8000` | 监听地址 |
 | `GAOKAO_DB` | `database/gaokao.db` | 数据库路径 |
 | `APP_BASE_PATH` | 空 | 子路径前缀，如 `/pastpapers` |
+
+### 推送代码到远端（`git push` 被网络拦掉时）
+
+有些网络环境会拦掉 git 协议，或者本机 schannel 拉不到证书吊销列表，`git push` 直接报
+`CRYPT_E_REVOCATION_OFFLINE`，但 HTTPS 访问 `api.github.com` 是通的。这时用 REST API 兜底：
+
+```bash
+# Token 会依次从 --token、GITHUB_TOKEN、git 凭据管理器里取，不需要写进脚本
+python scripts/github_api_push.py -m "feat: 新增中考地区卷"
+python scripts/github_api_push.py --dry-run            # 只列差异，不推送
+```
+
+脚本做的是**增量**同步：先取远端当前树，与本地 HEAD 逐文件比 sha，只上传变更的 blob，
+删掉的文件以 `sha=null` 提交，再建 tree → commit → 移动分支指针。上千个未变文件不会重复上传。
+默认目标仓库从 `origin` 远程地址推断，也可用 `--repo owner/repo --branch main` 指定。
+
+> 这种提交只存在于远端，本地 git 历史里没有对应对象。后续本地要再提交时，先
+> `git fetch && git reset --soft origin/main` 把本地对齐，避免两条历史各自生长。
 
 ## 数据来源与许可（请如实了解）
 
