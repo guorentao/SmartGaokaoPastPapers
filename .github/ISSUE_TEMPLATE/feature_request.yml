@@ -1,0 +1,26 @@
+name: 功能建议
+description: 想要的新功能、交互改进
+title: "[建议] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: scene
+    attributes:
+      label: 你想解决什么问题
+      description: 描述使用场景比描述实现方式更有用
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: 你希望它怎么工作
+    validations:
+      required: false
+  - type: checkboxes
+    id: willing
+    attributes:
+      label: 你愿意自己动手吗
+      options:
+        - label: 我可以提 PR 实现
+        - label: 我可以帮忙测试
+        - label: 我可以提供数据或样卷

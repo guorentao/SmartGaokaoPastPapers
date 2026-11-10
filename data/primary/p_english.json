@@ -1,0 +1,120 @@
+{
+  "subject_code": "p_english",
+  "subject_name": "小学英语",
+  "description": "小学 3-6 年级英语，按年级和学期划分单元",
+  "icon": "🔤",
+  "units": [
+    {
+      "grade": 3,
+      "semester": "上",
+      "kp": "字母与日常问候",
+      "note": "1. 26 个字母大小写要会读会写，5 个元音字母是 A E I O U。\n2. 问候语：Good morning / afternoon / evening；Hello! Hi!\n3. be 动词口诀：I 用 am，you 用 are，is 连着他她它。\n4. How are you? 回答 Fine, thank you. / I'm OK.",
+      "questions": [
+        {"stem": "字母 A 的小写形式是（ ）", "options": ["a", "e", "o", "u"], "answer": "A", "analysis": "A 的小写是 a。"},
+        {"stem": "字母表中第 5 个字母是（ ）", "options": ["D", "E", "F", "C"], "answer": "B", "analysis": "A B C D E，第 5 个是 E。"},
+        {"stem": "「Good morning!」的意思是（ ）", "options": ["早上好", "下午好", "晚上好", "再见"], "answer": "A", "analysis": "morning 是上午、早上。"},
+        {"stem": "Hello! I ___ Amy.", "options": ["am", "is", "are", "be"], "answer": "A", "analysis": "主语是 I，用 am。"},
+        {"stem": "下面哪个是元音字母？", "options": ["B", "E", "K", "M"], "answer": "B", "analysis": "元音字母是 A E I O U。"},
+        {"stem": "「How are you?」的合适回答是（ ）", "options": ["Fine, thank you.", "I'm Amy.", "It's red.", "Yes, I do."], "answer": "A", "analysis": "问身体/近况，答 Fine, thank you."}
+      ]
+    },
+    {
+      "grade": 3,
+      "semester": "下",
+      "kp": "颜色与数字",
+      "note": "1. 颜色词：red, blue, green, yellow, black, white, orange。\n2. 数字 1-10：one two three four five six seven eight nine ten。\n3. 问颜色：What colour is it? — It's + 颜色。\n4. 问数量：How many + 复数名词？",
+      "questions": [
+        {"stem": "「red」的意思是（ ）", "options": ["红色", "蓝色", "绿色", "黄色"], "answer": "A", "analysis": "red 红色。"},
+        {"stem": "「How many pencils?」「Three.」表示有几支铅笔？", "options": ["2 支", "3 支", "4 支", "5 支"], "answer": "B", "analysis": "three 是三。"},
+        {"stem": "「eight」表示的数字是（ ）", "options": ["6", "7", "8", "9"], "answer": "C", "analysis": "eight 是 8。"},
+        {"stem": "「What colour is it?」「It's blue.」说的是什么颜色？", "options": ["红色", "蓝色", "黑色", "白色"], "answer": "B", "analysis": "blue 是蓝色。"},
+        {"stem": "ten 减去 two 等于（ ）", "options": ["six", "seven", "eight", "nine"], "answer": "C", "analysis": "10-2=8，即 eight。"},
+        {"stem": "「My bag is ___.」（我的书包是黄色的）", "options": ["red", "yellow", "blue", "black"], "answer": "B", "analysis": "黄色是 yellow。"}
+      ]
+    },
+    {
+      "grade": 4,
+      "semester": "上",
+      "kp": "There be 句型与教室物品",
+      "note": "1. There be 句型表示「某地有某物」，be 动词就近原则：单数用 is，复数用 are。\n2. 教室物品：window 窗户、door 门、blackboard 黑板、desk 课桌、chair 椅子。\n3. 问位置用 Where is/are...? 回答用 in/on/under/near。\n4. 问数量：How many ... are there?",
+      "questions": [
+        {"stem": "There ___ a book on the desk.", "options": ["is", "are", "am", "be"], "answer": "A", "analysis": "a book 是单数，用 is。"},
+        {"stem": "There ___ two chairs.", "options": ["is", "are", "am", "be"], "answer": "B", "analysis": "two chairs 是复数，用 are。"},
+        {"stem": "「window」的意思是（ ）", "options": ["门", "窗户", "黑板", "桌子"], "answer": "B", "analysis": "window 窗户。"},
+        {"stem": "「___ is the picture?」「It's on the wall.」", "options": ["What", "Where", "Who", "How"], "answer": "B", "analysis": "回答是位置，问的是 Where。"},
+        {"stem": "How many students ___ in the classroom?", "options": ["are there", "there are", "is there", "there is"], "answer": "A", "analysis": "How many 引导的疑问句用 are there。"},
+        {"stem": "「teacher's desk」的意思是（ ）", "options": ["讲台", "课桌", "书架", "椅子"], "answer": "A", "analysis": "teacher's desk 是老师的桌子，即讲台。"}
+      ]
+    },
+    {
+      "grade": 4,
+      "semester": "下",
+      "kp": "时间与天气",
+      "note": "1. 问时间：What time is it? — It's seven o'clock.\n2. 天气词：sunny 晴朗、rainy 下雨、windy 刮风、snowy 下雪、cloudy 多云。\n3. 问天气：What's the weather like?\n4. 星期：Monday Tuesday Wednesday Thursday Friday Saturday Sunday。",
+      "questions": [
+        {"stem": "「It's 7 o'clock.」表示几点？", "options": ["六点", "七点", "八点", "九点"], "answer": "B", "analysis": "seven o'clock 是七点。"},
+        {"stem": "「It's ___.」（下雨）", "options": ["sunny", "rainy", "windy", "snowy"], "answer": "B", "analysis": "rainy 表示下雨的。"},
+        {"stem": "「What's the weather like?」问的是（ ）", "options": ["天气", "时间", "颜色", "价格"], "answer": "A", "analysis": "weather 是天气。"},
+        {"stem": "「星期三」的英文是（ ）", "options": ["Monday", "Tuesday", "Wednesday", "Thursday"], "answer": "C", "analysis": "Wednesday 星期三。"},
+        {"stem": "It's time ___ lunch.", "options": ["to", "for", "at", "in"], "answer": "B", "analysis": "It's time for + 名词；It's time to + 动词。"},
+        {"stem": "「snowy」的意思是（ ）", "options": ["下雪的", "晴朗的", "多云的", "刮风的"], "answer": "A", "analysis": "snow 雪，snowy 下雪的。"}
+      ]
+    },
+    {
+      "grade": 5,
+      "semester": "上",
+      "kp": "一般现在时与日常活动",
+      "note": "1. 一般现在时表示经常发生的动作；主语是第三人称单数时动词加 s/es。\n2. 频率副词：always 总是、usually 通常、often 经常、sometimes 有时、never 从不。\n3. 问日常活动：What do you do on the weekend?\n4. 一般疑问句 Do you...? 回答 Yes, I do. / No, I don't.",
+      "questions": [
+        {"stem": "She ___ reading.", "options": ["like", "likes", "liking", "to like"], "answer": "B", "analysis": "主语 She 是第三人称单数，动词加 s。"},
+        {"stem": "I often ___ TV on Sundays.", "options": ["watch", "watches", "watching", "to watch"], "answer": "A", "analysis": "主语 I 用动词原形。"},
+        {"stem": "He ___ to school by bus.", "options": ["go", "goes", "going", "to go"], "answer": "B", "analysis": "主语 He 是第三人称单数，用 goes。"},
+        {"stem": "「Do you like apples?」的回答是（ ）", "options": ["Yes, I do.", "Yes, I am.", "Yes, I can.", "Yes, I like."], "answer": "A", "analysis": "Do 提问用 do 回答。"},
+        {"stem": "「always」的意思是（ ）", "options": ["总是", "从不", "有时", "很少"], "answer": "A", "analysis": "always 表示总是。"},
+        {"stem": "「What do you do on the weekend?」问的是（ ）", "options": ["周末做什么", "几点起床", "怎么去学校", "喜欢什么"], "answer": "A", "analysis": "on the weekend 指周末。"}
+      ]
+    },
+    {
+      "grade": 5,
+      "semester": "下",
+      "kp": "现在进行时与季节",
+      "note": "1. 现在进行时：be（am/is/are）+ 动词 ing，表示正在做某事。\n2. 动词 ing 变化：直接加 ing；以不发音 e 结尾去 e 加 ing；重读闭音节双写末尾字母（swim→swimming）。\n3. 提示词：now, look, listen。\n4. 季节：spring summer autumn winter。",
+      "questions": [
+        {"stem": "Look! They ___ football.", "options": ["play", "plays", "are playing", "played"], "answer": "C", "analysis": "Look 提示正在发生，用现在进行时。"},
+        {"stem": "She is ___ a book.", "options": ["read", "reads", "reading", "to read"], "answer": "C", "analysis": "be + 动词 ing。"},
+        {"stem": "「Which season do you like best?」问的是（ ）", "options": ["最喜欢的季节", "最喜欢的颜色", "几岁", "住在哪里"], "answer": "A", "analysis": "season 是季节。"},
+        {"stem": "「autumn」的意思是（ ）", "options": ["春天", "夏天", "秋天", "冬天"], "answer": "C", "analysis": "autumn 秋天。"},
+        {"stem": "I ___ doing my homework now.", "options": ["is", "am", "are", "be"], "answer": "B", "analysis": "主语 I 用 am。"},
+        {"stem": "「swim」的现在分词是（ ）", "options": ["swiming", "swimming", "swimed", "swims"], "answer": "B", "analysis": "重读闭音节双写 m 再加 ing。"}
+      ]
+    },
+    {
+      "grade": 6,
+      "semester": "上",
+      "kp": "一般将来时与交通出行",
+      "note": "1. 一般将来时：will + 动词原形；be going to + 动词原形。\n2. 交通方式：by bus / by bike / by subway / on foot。\n3. 问路与指路：turn left 向左转、turn right 向右转、go straight 直走。\n4. next to 紧挨着，behind 在……后面。",
+      "questions": [
+        {"stem": "I ___ go to Beijing next week.", "options": ["am", "do", "will", "did"], "answer": "C", "analysis": "next week 表将来，用 will + 动词原形。"},
+        {"stem": "「How do you come to school?」「By bus.」问的是（ ）", "options": ["交通方式", "时间", "地点", "价格"], "answer": "A", "analysis": "How 在这里问方式。"},
+        {"stem": "「turn left」的意思是（ ）", "options": ["向右转", "向左转", "直走", "停下"], "answer": "B", "analysis": "left 是左边。"},
+        {"stem": "She is going to ___ a film.", "options": ["see", "sees", "saw", "seeing"], "answer": "A", "analysis": "be going to 后接动词原形。"},
+        {"stem": "「next to」的意思是（ ）", "options": ["在前面", "在后面", "紧挨着", "在下面"], "answer": "C", "analysis": "next to 表示紧挨着、在……旁边。"},
+        {"stem": "「subway」的意思是（ ）", "options": ["地铁", "公交车", "火车", "飞机"], "answer": "A", "analysis": "subway 地铁。"}
+      ]
+    },
+    {
+      "grade": 6,
+      "semester": "下",
+      "kp": "一般过去时与形容词比较级",
+      "note": "1. 一般过去时表示过去发生的动作，规则动词加 ed，不规则动词要记：go→went, see→saw, is→was。\n2. 时间标志：yesterday, last week/weekend, ... ago。\n3. 比较级：一般加 er（taller）；多音节词前加 more（more interesting）。\n4. 比较级常与 than 连用。",
+      "questions": [
+        {"stem": "I ___ to the park yesterday.", "options": ["go", "goes", "went", "going"], "answer": "C", "analysis": "yesterday 表过去，go 的过去式是 went。"},
+        {"stem": "He ___ ill last week.", "options": ["is", "was", "were", "are"], "answer": "B", "analysis": "last week 表过去，主语 He 用 was。"},
+        {"stem": "「taller」是「tall」的（ ）", "options": ["比较级", "最高级", "原形", "名词"], "answer": "A", "analysis": "加 er 构成比较级，表示更高。"},
+        {"stem": "This book is ___ than that one.", "options": ["interesting", "more interesting", "most interesting", "the interesting"], "answer": "B", "analysis": "多音节词比较级用 more + 原级。"},
+        {"stem": "Did you ___ the film?", "options": ["see", "saw", "seen", "seeing"], "answer": "A", "analysis": "Did 后面用动词原形。"},
+        {"stem": "「last weekend」表示（ ）", "options": ["上个周末", "这个周末", "下个周末", "每个周末"], "answer": "A", "analysis": "last 表示上一个。"}
+      ]
+    }
+  ]
+}

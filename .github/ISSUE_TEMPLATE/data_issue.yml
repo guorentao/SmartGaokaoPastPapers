@@ -1,0 +1,45 @@
+name: 题目/数据有误
+description: 答案错、选项缺失、题干残缺、公式乱码、知识点解析不对
+title: "[数据] "
+labels: ["data"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        不需要会写代码，填清楚这几项就好。改完会出现在下一次重建里。
+  - type: input
+    id: location
+    attributes:
+      label: 位置
+      description: 页面链接，或「2021 年全国乙卷 理科数学 第 12 题」这样的描述
+      placeholder: /question/MATH-2021-... 或 2021 全国乙卷 理科数学 第 12 题
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: 问题类型
+      options:
+        - 答案错误
+        - 选项缺失或错位
+        - 题干残缺 / 串题
+        - 公式或图片乱码
+        - 知识点解析有误
+        - 知识点关联不相关
+        - 其他
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 正确内容是什么
+      description: 如果是答案错，请写上正确答案；如果有出处（官方解析、教材页码），一并贴上
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: 截图或补充
+      description: 可以直接把截图拖进来
+    validations:
+      required: false

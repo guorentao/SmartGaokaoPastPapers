@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-and-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: 安装依赖
+        run: pip install -r requirements.txt
+
+      - name: 语法检查
+        run: python -m compileall -q src scripts database
+
+      - name: 从零重建数据库（约 5 秒）
+        run: python scripts/bootstrap.py --force
+
+      - name: 校验构建产物
+        run: python scripts/ci_check.py
+
+      - name: 启动服务并探测页面
+        run: |
+          set -e
+          python -m uvicorn src.web.app:app --host 127.0.0.1 --port 8000 &
+          for i in $(seq 1 40); do
+            if curl -sf http://127.0.0.1:8000/health > /dev/null; then
+              echo "服务已就绪（${i}s）"
+              break
+            fi
+            sleep 1
+          done
+          for p in / /papers /graph /quiz /search; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:8000$p")
+            echo "$p -> $code"
+            test "$code" = "200"
+          done
+
+      - name: 试卷导出可用
+        run: |
+          set -e
+          curl -sf -o /tmp/math.zip "http://127.0.0.1:8000/papers/package?subject=math&fmt=docx"
+          python scripts/ci_check_zip.py /tmp/math.zip

@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学情诊断 · 高考真题库系统</title>
+    <link rel="stylesheet" href="{{ base }}/static/css/style.css">
+</head>
+<body>
+<div class="container">
+    <header class="header quiz-header">
+        <div class="quiz-header-top">
+            <div>
+                <h1>🎯 学情诊断中心</h1>
+                <p class="subtitle">先测后练：按年级抽已学过的题，定位薄弱知识点，再组巩固卷</p>
+            </div>
+            <nav class="quiz-nav">
+                <a href="{{ base }}/">题库首页</a>
+                <a href="{{ base }}/quiz">诊断中心</a>
+                <a href="{{ base }}/search">搜题</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content">
+        {% if err == 'empty' %}
+        <div class="notice notice-warn">该年级范围内暂无可自动判分的题目，请调整年级或学期后再试。</div>
+        {% endif %}
+
+        <section class="student-card">
+            <form id="startForm" method="post" action="{{ base }}/quiz/start">
+                <input type="hidden" name="subject_code" id="fSubject" value="">
+                <input type="hidden" name="count" id="fCount" value="12">
+                <div class="stu-head">
+                    <b>学生信息</b>
+                    <span class="muted">试卷、答题页和打印稿都会带上这些信息</span>
+                </div>
+                <div class="stu-grid">
+                    <label class="stu-field">
+                        <span>姓名</span>
+                        <input type="text" name="student_name" id="fName" maxlength="20" placeholder="如 张小明" autocomplete="off">
+                    </label>
+                    <label class="stu-field">
+                        <span>班级</span>
+                        <input type="text" name="student_class" id="fClass" maxlength="20" placeholder="如 二(3)班" autocomplete="off">
+                    </label>
+                    <label class="stu-field">
+                        <span>年级</span>
+                        <select name="grade" id="fGrade">
+                            {% for label, items in grade_groups %}
+                            <optgroup label="{{ label }}">
+                                {% for g, gl in items %}
+                                <option value="{{ g }}" {% if g == cur_grade %}selected{% endif %}>{{ gl }}</option>
+                                {% endfor %}
+                            </optgroup>
+                            {% endfor %}
+                        </select>
+                    </label>
+                    <label class="stu-field">
+                        <span>学期</span>
+                        <select name="semester" id="fSemester">
+                            <option value="上" {% if cur_semester == '上' %}selected{% endif %}>上学期</option>
+                            <option value="下" {% if cur_semester == '下' %}selected{% endif %}>下学期</option>
+                        </select>
+                    </label>
+                </div>
+                <div class="stu-hint">
+                    出题范围：<b>本年级及以前</b>已学内容；本年级只出到所选学期，<b>不会抽到还没学的题</b>。
+                    高中题库为历年高考真题，覆盖高中全部内容。
+                </div>
+            </form>
+        </section>
+
+        <section class="flow-strip">
+            <div class="flow-step"><span class="flow-num">1</span><div><b>填信息选学科</b><small>按年级范围抽题，避开没学的内容</small></div></div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step"><span class="flow-num">2</span><div><b>作答自动判分</b><small>单选/填空秒判，主观题不计入诊断</small></div></div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step"><span class="flow-num">3</span><div><b>看薄弱点报告</b><small>按知识点给出掌握度与错题归因</small></div></div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step"><span class="flow-num">4</span><div><b>生成巩固卷</b><small>只考薄弱知识点，未做过的题优先</small></div></div>
+        </section>
+
+        {% set primary = subjects | selectattr('stage', 'equalto', 'primary') | list %}
+        {% if primary %}
+        <section class="subject-section stage-block" data-stage="primary">
+            <h2>小学题库 <span class="stage-badge">一 ~ 六年级</span></h2>
+            <div class="quiz-subject-grid">
+                {% for s in primary %}
+                <div class="quiz-subject-card" data-code="{{ s.subject_code }}" data-name="{{ s.subject_name }}"
+                     data-ready='{{ s.ready | tojson }}'>
+                    <div class="qsc-head">
+                        <span class="qsc-icon">{{ s.subject_code | get_subject_icon }}</span>
+                        <div>
+                            <div class="qsc-name">{{ s.subject_name }}</div>
+                            <div class="qsc-meta"><span class="qsc-count">可测 {{ s.units }} 个知识点 · {{ s.questions }} 道题</span></div>
+                        </div>
+                    </div>
+                    {% if s.mastery.n %}
+                    <div class="qsc-mastery">
+                        <div class="mastery-bar">
+                            {% set total = s.mastery.n or 1 %}
+                            <span class="mb-good" style="width: {{ (s.mastery.good / total * 100) | round(1) }}%"></span>
+                            <span class="mb-shaky" style="width: {{ (s.mastery.shaky / total * 100) | round(1) }}%"></span>
+                            <span class="mb-weak" style="width: {{ (s.mastery.weak / total * 100) | round(1) }}%"></span>
+                        </div>
+                        <div class="qsc-mastery-text">
+                            已测 {{ s.mastery.n }} 个考点 · 平均掌握 {{ s.mastery.avg_acc }}%
+                            {% if s.mastery.weak %}<span class="tag tag-weak">{{ s.mastery.weak }} 薄弱</span>{% endif %}
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="qsc-mastery-text muted">尚未测评</div>
+                    {% endif %}
+                    <div class="qsc-actions">
+                        <button type="button" class="btn-quiz btn-sm" data-count="10">快速 10 题</button>
+                        <button type="button" class="btn-quiz btn-sm btn-primary" data-count="15">标准 15 题</button>
+                        <button type="button" class="btn-quiz btn-sm" data-count="20">加强 20 题</button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        {% set senior = subjects | selectattr('stage', 'equalto', 'senior') | list %}
+        {% if senior %}
+        <section class="subject-section stage-block" data-stage="senior">
+            <h2>高中题库 <span class="stage-badge">高一 ~ 高三 · 高考真题</span></h2>
+            <div class="quiz-subject-grid">
+                {% for s in senior %}
+                <div class="quiz-subject-card" data-code="{{ s.subject_code }}" data-name="{{ s.subject_name }}">
+                    <div class="qsc-head">
+                        <span class="qsc-icon">{{ s.subject_code | get_subject_icon }}</span>
+                        <div>
+                            <div class="qsc-name">{{ s.subject_name }}</div>
+                            <div class="qsc-meta">可测 {{ s.units }} 个知识点 · {{ s.questions }} 道题</div>
+                        </div>
+                    </div>
+                    {% if s.mastery.n %}
+                    <div class="qsc-mastery">
+                        <div class="mastery-bar">
+                            {% set total = s.mastery.n or 1 %}
+                            <span class="mb-good" style="width: {{ (s.mastery.good / total * 100) | round(1) }}%"></span>
+                            <span class="mb-shaky" style="width: {{ (s.mastery.shaky / total * 100) | round(1) }}%"></span>
+                            <span class="mb-weak" style="width: {{ (s.mastery.weak / total * 100) | round(1) }}%"></span>
+                        </div>
+                        <div class="qsc-mastery-text">
+                            已测 {{ s.mastery.n }} 个考点 · 平均掌握 {{ s.mastery.avg_acc }}%
+                            {% if s.mastery.weak %}<span class="tag tag-weak">{{ s.mastery.weak }} 薄弱</span>{% endif %}
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="qsc-mastery-text muted">尚未测评</div>
+                    {% endif %}
+                    {% if s.questions > 0 %}
+                    <div class="qsc-actions">
+                        <button type="button" class="btn-quiz btn-sm" data-count="12">快速 12 题</button>
+                        <button type="button" class="btn-quiz btn-sm btn-primary" data-count="20">标准 20 题</button>
+                        <button type="button" class="btn-quiz btn-sm" data-count="30">深度 30 题</button>
+                    </div>
+                    {% else %}
+                    <div class="qsc-actions"><span class="muted">题库中暂无该学科可判分题目</span></div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        {% if weak_units %}
+        <section class="subject-section">
+            <h2>跨学科薄弱考点（按历史测评分）</h2>
+            <div class="weak-list">
+                {% for w in weak_units %}
+                <div class="weak-item">
+                    <span class="weak-sub">{{ w.subject_name }}</span>
+                    {% if w.kp_id %}
+                    <a href="{{ base }}/knowledge/{{ w.unit_key[3:] }}" class="weak-name">{{ w.unit_name }}</a>
+                    {% else %}
+                    <span class="weak-name">{{ w.unit_name }}</span>
+                    {% endif %}
+                    <span class="weak-acc {{ 'danger' if w.accuracy < 60 else 'warn' }}">{{ w.accuracy }}%</span>
+                    <span class="weak-times">测 {{ w.attempts }} 题 / 对 {{ w.correct }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        {% if recent %}
+        <section class="subject-section">
+            <h2>测评记录</h2>
+            <table class="quiz-table">
+                <thead>
+                <tr><th>时间</th><th>学生</th><th>学科</th><th>类型</th><th>题目</th><th>正确率</th><th></th></tr>
+                </thead>
+                <tbody>
+                {% for r in recent %}
+                <tr>
+                    <td class="muted">{{ (r.submitted_at or r.created_at)[5:16] }}</td>
+                    <td>
+                        {% if r.student_name %}{{ r.student_name }}{% else %}<span class="muted">—</span>{% endif %}
+                        {% if r.student_grade %}<span class="muted">· {{ r.student_grade | grade_label }}{{ r.student_semester or '' }}</span>{% endif %}
+                    </td>
+                    <td>{{ r.subject_name }}</td>
+                    <td>
+                        {% if r.kind == 'consolidate' %}<span class="tag tag-consol">巩固卷</span>
+                        {% else %}<span class="tag tag-diag">诊断</span>{% endif %}
+                    </td>
+                    <td>{{ r.question_count }} 题 · 对 {{ r.correct_count }}</td>
+                    <td><span class="acc-pill {{ 'danger' if r.accuracy < 60 else ('warn' if r.accuracy < 80 else 'good') }}">{{ r.accuracy }}%</span></td>
+                    <td><a class="link" href="{{ base }}/quiz/{{ r.session_id }}/report">查看报告</a></td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </section>
+        {% endif %}
+    </main>
+</div>
+
+<script>
+(function () {
+    var form = document.getElementById('startForm');
+    var gradeSel = document.getElementById('fGrade');
+    var semSel = document.getElementById('fSemester');
+    var cards = Array.prototype.slice.call(document.querySelectorAll('.quiz-subject-card'));
+    var blocks = Array.prototype.slice.call(document.querySelectorAll('.stage-block'));
+    var submitting = false;
+
+    // 记住上次填过的学生信息
+    try {
+        var saved = JSON.parse(localStorage.getItem('quiz_student') || '{}');
+        if (saved.name) document.getElementById('fName').value = saved.name;
+        if (saved.cls) document.getElementById('fClass').value = saved.cls;
+        if (saved.grade) gradeSel.value = saved.grade;
+        if (saved.semester) semSel.value = saved.semester;
+    } catch (e) {}
+
+    function stageOf(g) {
+        g = Number(g);
+        if (g >= 1 && g <= 6) return 'primary';
+        if (g >= 10 && g <= 12) return 'senior';
+        return '';
+    }
+
+    function refresh() {
+        var stage = stageOf(gradeSel.value);
+        blocks.forEach(function (b) {
+            b.style.display = (b.dataset.stage === stage) ? '' : 'none';
+        });
+        cards.forEach(function (card) {
+            var ready = card.dataset.ready ? JSON.parse(card.dataset.ready) : null;
+            var label = card.querySelector('.qsc-count');
+            var n = null;
+            if (ready && ready[gradeSel.value] !== undefined) {
+                n = ready[gradeSel.value];
+                label.textContent = '可测 ' + n + ' 道题（' + gradeSel.options[gradeSel.selectedIndex].text + '）';
+            }
+            card.classList.toggle('disabled', n === 0);
+            card.querySelectorAll('button[data-count]').forEach(function (btn) {
+                btn.disabled = (n === 0);
+                if (n !== null && n > 0) {
+                    btn.textContent = btn.textContent.replace(/\d+ 题$/, Math.min(Number(btn.dataset.count), n) + ' 题');
+                }
+            });
+        });
+    }
+
+    gradeSel.addEventListener('change', refresh);
+    semSel.addEventListener('change', refresh);
+    document.getElementById('fName').addEventListener('input', saveStudent);
+    document.getElementById('fClass').addEventListener('input', saveStudent);
+    gradeSel.addEventListener('change', saveStudent);
+    semSel.addEventListener('change', saveStudent);
+
+    function saveStudent() {
+        try {
+            localStorage.setItem('quiz_student', JSON.stringify({
+                name: document.getElementById('fName').value,
+                cls: document.getElementById('fClass').value,
+                grade: gradeSel.value,
+                semester: semSel.value
+            }));
+        } catch (e) {}
+    }
+
+    cards.forEach(function (card) {
+        card.querySelectorAll('button[data-count]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var ready = card.dataset.ready ? JSON.parse(card.dataset.ready) : null;
+                var count = Number(btn.dataset.count);
+                if (ready && ready[gradeSel.value] !== undefined) {
+                    count = Math.min(count, ready[gradeSel.value]);
+                }
+                if (!count) return;
+                document.getElementById('fSubject').value = card.dataset.code;
+                document.getElementById('fCount').value = count;
+                submitting = true;
+                form.submit();
+            });
+        });
+    });
+
+    // 回车不提交空表单
+    form.addEventListener('submit', function (e) {
+        if (!submitting) e.preventDefault();
+    });
+
+    // 记住年级后刷新显示
+    refresh();
+})();
+</script>
+</body>
+</html>

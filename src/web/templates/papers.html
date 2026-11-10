@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>试卷下载中心 - 高考真题库系统</title>
+    <link rel="stylesheet" href="{{ base }}/static/css/style.css">
+</head>
+<body>
+<div class="container">
+    <header class="header quiz-header">
+        <div class="quiz-header-top">
+            <div>
+                <nav class="breadcrumb"><a href="{{ base }}/">首页</a> / 试卷下载中心</nav>
+                <h1>📥 试卷下载中心</h1>
+                <p class="subtitle">历年高考真题 · 一键下载 Word / 网页版（可直接打印）</p>
+            </div>
+            <nav class="quiz-nav">
+                <a href="{{ base }}/quiz">🎯 学情诊断</a>
+                <a href="{{ base }}/graph">🕸 知识图谱</a>
+                <a href="{{ base }}/search">🔍 搜题</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <!-- 总览 + 批量下载 -->
+        <section class="dl-hero">
+            <div class="dl-hero-left">
+                <div class="dl-big">{{ total_papers }}</div>
+                <div class="dl-big-label">份真题试卷</div>
+                <div class="dl-hero-sub">共 {{ total_questions }} 道题目 · 覆盖 2010–2022 年九大学科</div>
+            </div>
+            <div class="dl-hero-actions">
+                <a class="btn-quiz btn-primary btn-lg" href="{{ base }}/papers/package?subject=all&fmt=docx">
+                    ⬇ 下载全部（Word 版·{{ total_papers }} 份）
+                </a>
+                <a class="btn-quiz btn-lg" href="{{ base }}/papers/package?subject=all&fmt=html">
+                    ⬇ 下载全部（网页版，可打印 PDF）
+                </a>
+                <div class="dl-hint">打包文件含答案解析，按学科分文件夹，解压即用。</div>
+            </div>
+        </section>
+
+        <!-- 筛选 -->
+        <section class="dl-filter">
+            <form method="get" action="{{ base }}/papers" class="inline-form">
+                <label>学科
+                    <select name="subject">
+                        <option value="all" {% if cur.subject == 'all' %}selected{% endif %}>全部学科</option>
+                        {% for s in subjects if s.stage == 'senior' %}
+                        <option value="{{ s.subject_code }}" {% if cur.subject == s.subject_code %}selected{% endif %}>{{ s.subject_name }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <label>年份
+                    <select name="year">
+                        <option value="">全部年份</option>
+                        {% for y in years %}
+                        <option value="{{ y }}" {% if cur.year == y %}selected{% endif %}>{{ y }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <label>关键词
+                    <input type="text" name="q" value="{{ cur.q }}" placeholder="如：全国乙卷">
+                </label>
+                <button class="btn-quiz btn-primary" type="submit">筛选</button>
+                {% if cur.subject != 'all' or cur.year or cur.q %}
+                <a class="btn-quiz btn-sm" href="{{ base }}/papers">重置</a>
+                {% endif %}
+            </form>
+            <div class="dl-filter-actions">
+                <span class="muted">当前结果 {{ papers|length }} 份</span>
+                <a class="btn-quiz btn-sm" href="{{ base }}/papers/package?subject={{ cur.subject }}&year={{ cur.year or '' }}&fmt=docx">打包下载当前筛选（Word）</a>
+                <a class="btn-quiz btn-sm" href="{{ base }}/papers/package?subject={{ cur.subject }}&year={{ cur.year or '' }}&fmt=html">打包下载（网页版）</a>
+            </div>
+        </section>
+
+        <!-- 列表 -->
+        <section class="dl-list">
+            <table class="quiz-table dl-table">
+                <thead>
+                <tr>
+                    <th style="width:64px">年份</th>
+                    <th style="width:80px">学科</th>
+                    <th>试卷</th>
+                    <th style="width:64px">题数</th>
+                    <th style="width:250px">下载</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for p in papers %}
+                <tr>
+                    <td>{{ p.year }}</td>
+                    <td><span class="dl-sub">{{ p.subject_name }}</span></td>
+                    <td>
+                        <a class="dl-title" href="{{ base }}/paper/{{ p.paper_id }}">{{ p.paper_title }}</a>
+                        <div class="dl-meta">{{ p.region }} · {{ p.paper_version or '真题' }}</div>
+                    </td>
+                    <td>{{ p.q_count }}</td>
+                    <td class="dl-actions">
+                        <a class="btn-quiz btn-sm" href="{{ base }}/paper/{{ p.paper_id }}">预览</a>
+                        <a class="btn-quiz btn-sm" href="{{ base }}/paper/{{ p.paper_id }}/download?fmt=docx">Word</a>
+                        <a class="btn-quiz btn-sm" href="{{ base }}/paper/{{ p.paper_id }}/download?fmt=html">网页</a>
+                        <a class="btn-quiz btn-sm" href="{{ base }}/paper/{{ p.paper_id }}/download?fmt=md">MD</a>
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            {% if not papers %}
+            <p class="muted" style="padding:20px">没有符合条件的试卷，换个筛选条件试试。</p>
+            {% endif %}
+        </section>
+
+        <!-- 小学练习卷 -->
+        {% if primary %}
+        <section class="dl-primary">
+            <h2>小学单元练习卷</h2>
+            <p class="muted">按年级、学期整册打包，适合打印给孩子做。每册含该册全部练习题与答案解析。</p>
+            <div class="dl-primary-grid">
+                {% for sub in primary %}
+                <div class="dl-primary-card">
+                    <div class="dlp-head">{{ sub.subject_name }}</div>
+                    <div class="dlp-list">
+                        {% for r in sub.rows %}
+                        <a class="dlp-item" href="{{ base }}/papers/primary/{{ sub.subject_code }}/{{ r.grade }}{{ r.semester }}?fmt=docx">
+                            <span>{{ r.grade }}年级{{ r.semester }}册</span>
+                            <span class="muted">{{ r.n }} 题</span>
+                            <span class="dlp-dl">⬇</span>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        <section class="dl-note">
+            <h3>关于这些试卷</h3>
+            <ul>
+                <li>题库来自 <b>GAOKAO-Bench</b> 公开数据集（2010–2022 年高考真题），由本项目导入并补全知识点解析。</li>
+                <li>每份试卷是该年度该地区、本系统<b>已收录的全部题目</b>，部分学科（如物理、地理）数据集本身只含客观题，因此题量少于原卷；卷头均标注实际题数。</li>
+                <li>下载的 Word 版含「题目 + 答案解析」；网页版打开后可点顶部按钮直接打印或另存为 PDF，公式用 MathJax 渲染。</li>
+                <li>如需不含答案的学生版，在下载链接后加 <code>&amp;answer=0</code>。</li>
+            </ul>
+        </section>
+    </main>
+</div>
+</body>
+</html>

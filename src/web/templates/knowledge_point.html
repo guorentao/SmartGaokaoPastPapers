@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ kp.kp_name }} - {{ subject.subject_name }}</title>
+    <link rel="stylesheet" href="{{ base }}/static/css/style.css">
+    <script>
+    // MathJax 全局配置
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true,
+        processEnvironments: true,
+        packages: { '[+]': ['ams', 'amssymb', 'boldsymbol', 'cancel', 'color', 'mathtools', 'mhchem', 'textmacros'] }
+      },
+      options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+        ignoreHtmlClass: 'tex2jax_ignore',
+        processHtmlClass: 'tex2jax_process'
+      },
+      chtml: {
+        scale: 1,
+        minScale: 0.5,
+        mtextInheritFont: true,
+        matchFontHeight: true
+      },
+      startup: {
+        typeset: false,
+        pageReady: function() {
+          return MathJax.startup.defaultPageReady().then(function() {
+            window.__mathjaxReady = true;
+            document.dispatchEvent(new CustomEvent('mathjax-ready'));
+          });
+        }
+      }
+    };
+    </script>
+    <!-- 优先加载 MathJax -->
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" async></script>
+    <!-- 备用CDN -->
+    <script>
+    (function() {
+      var timeout = setTimeout(function() {
+        if (!window.MathJax || !window.MathJax.version) {
+          var script = document.createElement('script');
+          script.src = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-chtml-full.js';
+          script.async = true;
+          document.head.appendChild(script);
+        }
+      }, 5000);
+      window.addEventListener('mathjax-ready', function() {
+        clearTimeout(timeout);
+      });
+    })();
+    </script>
+    <script>
+    // 图片自适应处理函数
+    window.__fitQMedia = function (img) {
+      if (!img || !img.naturalWidth) return;
+      var w = img.naturalWidth, h = img.naturalHeight;
+      var ratio = w / h;
+      
+      // 宽高比大于4的宽公式，单独成行显示
+      if (ratio > 4 && w > 200) {
+        img.classList.add('q-media-wide');
+        img.classList.remove('q-media-figure');
+        img.alt = img.alt === '公式' ? '公式' : img.alt;
+      }
+      // 明显的大示意图当块级图
+      else if ((h > 140 && w > 220) || (w > 360 && h > 100) || h > 220) {
+        img.classList.add('q-media-figure');
+        img.classList.remove('q-media-wide');
+        img.alt = img.alt === '公式' ? '示意图' : img.alt;
+      } else {
+        img.classList.remove('q-media-figure');
+        img.classList.remove('q-media-wide');
+      }
+    };
+
+    // 公式渲染降级
+    window.__renderMathWithFallback = function() {
+      if (window.MathJax && window.MathJax.typesetPromise) {
+        MathJax.typesetPromise().catch(function(err) {
+          console.warn('MathJax 渲染失败，使用图片降级:', err);
+          document.querySelectorAll('.q-latex-fallback').forEach(function(el) {
+            el.style.display = 'inline';
+          });
+        });
+      } else {
+        console.warn('MathJax 未加载，使用图片降级');
+        document.querySelectorAll('.q-latex-fallback').forEach(function(el) {
+          el.style.display = 'inline';
+        });
+      }
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(window.__renderMathWithFallback, 100);
+      });
+    } else {
+      setTimeout(window.__renderMathWithFallback, 100);
+    }
+
+    window.addEventListener('mathjax-ready', function() {
+      window.__renderMathWithFallback();
+    });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <nav class="breadcrumb">
+                <a href="{{ base }}/">首页</a> / 
+                <a href="{{ base }}/subject/{{ subject.subject_code }}">{{ subject.subject_name }}</a> / 
+                <span>{{ kp.kp_name }}</span>
+            </nav>
+            <h1>{{ kp.kp_name }}</h1>
+            <div class="kp-meta">
+                {% if kp.difficulty_level %}
+                <span class="tag tag-difficulty">难度: {{ kp.difficulty_level }}/5</span>
+                {% endif %}
+                {% if kp.importance_level %}
+                <span class="tag tag-importance">重要性: {{ kp.importance_level }}/5</span>
+                {% endif %}
+                <span class="tag tag-level">层级: 第{{ kp.kp_level }}级</span>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <section class="kp-detail-section">
+                <h2>📝 知识点解析</h2>
+                {% if kp.description %}
+                <p class="kp-summary">{{ kp.description }}</p>
+                {% endif %}
+                <div class="kp-content">
+                    {% if kp.content %}
+                    {{ kp.content | md | safe }}
+                    {% else %}
+                    <p class="kp-empty">暂无详细解析，正在完善中...</p>
+                    {% endif %}
+                </div>
+            </section>
+
+            {% if exam_points %}
+            <section class="exam-points-section">
+                <h2>🎯 考点</h2>
+                <div class="exam-points-list">
+                    {% for ep in exam_points %}
+                    <div class="exam-point-card">
+                        <h3>{{ ep.ep_name }}</h3>
+                        <p>{{ ep.description }}</p>
+                        <div class="ep-meta">
+                            <span class="tag">题型: {{ ep.exam_type }}</span>
+                            <span class="tag tag-difficulty">难度: {{ ep.difficulty_level }}/5</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
+
+            <section class="questions-section">
+                <h2>📋 相关高考真题</h2>
+                <p class="section-desc">共 {{ questions|length }} 道题目（显示前50道）</p>
+                <div class="questions-list">
+                    {% for q in questions %}
+                    <div class="question-item">
+                        <div class="question-header">
+                            <span class="question-year">{{ q.year }}年</span>
+                            <span class="question-region">{{ q.region }}</span>
+                            <span class="question-type">{{ q.question_type }}</span>
+                            <span class="question-num">第{{ q.question_number }}题</span>
+                        </div>
+                        <div class="question-preview tex2jax_process">
+                            {{ (q.question_text[:180] if q.question_text else '') | rich | safe }}{% if q.question_text and q.question_text|length > 180 %}...{% endif %}
+                        </div>
+                        <a href="{{ base }}/question/{{ q.question_id }}" class="view-detail-btn">查看详情 →</a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+</html>

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ session.title }} · 打印版</title>
+    <link rel="stylesheet" href="{{ base }}/static/css/style.css">
+    {% include "_mathjax.html" %}
+    <style>body { background: #eee; }</style>
+</head>
+<body>
+<div class="paper-toolbar">
+    <a class="btn-quiz" href="{{ base }}/quiz/{{ session.session_id }}/report">← 返回报告</a>
+    <button class="btn-quiz btn-primary" onclick="window.print()">打印 / 另存 PDF</button>
+    <a class="btn-quiz" href="{{ base }}/quiz/{{ session.session_id }}/paper?key={{ 0 if with_key else 1 }}">
+        {{ '只看试题' if with_key else '附答案与解析' }}
+    </a>
+</div>
+
+<div class="paper">
+    <div class="paper-head">
+        <h2>{{ subject.subject_name }}{% if scope %}（{{ scope }}）{% endif %} · {{ '巩固练习卷' if session.kind == 'consolidate' else '诊断测评卷' }}</h2>
+        <div class="paper-sub">{{ session.title }}</div>
+        <div class="paper-fields">
+            <span>姓名：{% if session.student_name %}<b class="pf-val">{{ session.student_name }}</b>{% else %}__________{% endif %}</span>
+            <span>年级：{% if scope %}<b class="pf-val">{{ scope }}</b>{% else %}__________{% endif %}</span>
+            <span>班级：{% if session.student_class %}<b class="pf-val">{{ session.student_class }}</b>{% else %}__________{% endif %}</span>
+            <span>日期：__________</span>
+            <span>得分：______</span>
+        </div>
+        <div class="paper-note">共 {{ items|length }} 题，限时 {{ ((items|length) * 2) }} 分钟（每题约 2 分钟）。选择题在括号内填写选项字母，填空题写清答案。</div>
+    </div>
+
+    {% for it in items %}
+    <div class="paper-q">
+        <div class="pq-head">
+            <span class="pq-num">{{ it.seq }}.</span>
+            <span class="pq-unit">［{{ it.unit_name }}］</span>
+        </div>
+        <div class="pq-stem">{{ it.stem | rich | safe }}</div>
+        {% if it.options %}
+        <div class="pq-options">
+            {% for label, text in it.options.items() %}
+            <div class="pq-opt"><b>{{ label }}.</b> {{ text | rich | safe }}</div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="pq-blank">答：________________________________________</div>
+        {% endif %}
+    </div>
+    {% endfor %}
+
+    {% if with_key %}
+    <div class="paper-key">
+        <h3>参考答案与解析</h3>
+        {% for it in items %}
+        <div class="key-item">
+            <b>{{ it.seq }}. {{ it.answer_text }}</b>
+            {% if it.analysis_text %}<div class="key-analysis">{{ it.analysis_text | rich | safe }}</div>{% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+</body>
+</html>

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>诊断报告 · {{ subject.subject_name }}</title>
+    <link rel="stylesheet" href="{{ base }}/static/css/style.css">
+    {% include "_mathjax.html" %}
+</head>
+<body class="quiz-body">
+<div class="container quiz-container">
+    <div class="report-head">
+        <div class="report-head-left">
+            <div class="breadcrumb"><a href="{{ base }}/quiz">学情诊断中心</a> / 诊断报告</div>
+            <h1>{{ session.title }}</h1>
+            {% if session.student_name or scope or session.student_class %}
+            <div class="report-student">
+                {% if session.student_name %}<span class="stu-chip">👤 {{ session.student_name }}</span>{% endif %}
+                {% if scope %}<span class="stu-chip">{{ scope }}</span>{% endif %}
+                {% if session.student_class %}<span class="stu-chip">{{ session.student_class }}</span>{% endif %}
+                {% if subject.stage == 'primary' %}<span class="stu-chip">已学范围出题</span>{% endif %}
+            </div>
+            {% endif %}
+            <p class="muted">{{ session.submitted_at }} 完成 · 用时约 {{ ((session.duration_sec or 0) / 60) | round(0) | int }} 分钟</p>
+        </div>
+        <div class="score-ring" style="--p: {{ session.accuracy }};">
+            <div class="score-inner">
+                <b>{{ session.correct_count }}/{{ session.question_count }}</b>
+                <span>{{ session.accuracy }}%</span>
+            </div>
+        </div>
+    </div>
+
+    {% if compare %}
+    <div class="notice notice-good">
+        本次是巩固卷。对照上次诊断：正确率 {{ compare.parent.accuracy }}% →
+        <b>{{ session.accuracy }}%</b>
+        <span class="{{ 'delta-up' if compare.delta >= 0 else 'delta-down' }}">
+            （{{ '+' if compare.delta >= 0 }}{{ compare.delta }} 个百分点）
+        </span>
+    </div>
+    {% endif %}
+
+    <div class="report-summary">
+        <h2>诊断结论</h2>
+        <p>
+            本次共测 <b>{{ report.unit_total }}</b> 个知识点／题型，覆盖 {{ session.question_count }} 道题。
+            {% if report.weak %}
+            其中 <b class="c-weak">{{ report.weak|length }}</b> 个考点明显薄弱（正确率 &lt; 60%），
+            {% endif %}
+            {% if report.shaky %}
+            <b class="c-shaky">{{ report.shaky|length }}</b> 个不够稳固（60%–80%），
+            {% endif %}
+            {% if report.good %}
+            <b class="c-good">{{ report.good|length }}</b> 个掌握扎实。
+            {% endif %}
+            {% if report.weak or report.shaky %}
+            建议先按下方清单复习对应知识点解析，再一键生成只考这些考点的巩固卷。
+            {% else %}
+            整体掌握良好，可间隔 1–2 周复查，或直接做更高题量的深度诊断。
+            {% endif %}
+        </p>
+    </div>
+
+    <div class="report-cols">
+        <section class="report-col">
+            <h3 class="col-title c-weak">明显薄弱 · {{ report.weak|length }}</h3>
+            {% for r in report.weak %}
+            <div class="unit-card lv-weak">
+                <div class="uc-top">
+                    <span class="uc-name">{{ r.name }}</span>
+                    <span class="uc-acc">{{ r.accuracy }}%</span>
+                </div>
+                <div class="uc-meta">{{ r.module }} · {{ r.correct }}/{{ r.n }} 正确{% if r.low_confidence %} · 仅 1 题{% endif %}</div>
+                {% if r.kp_code %}<a class="uc-link" href="{{ base }}/knowledge/{{ r.kp_code }}">看知识点解析 →</a>{% endif %}
+            </div>
+            {% else %}
+            <p class="muted empty-col">本次没有明显薄弱项</p>
+            {% endfor %}
+        </section>
+
+        <section class="report-col">
+            <h3 class="col-title c-shaky">不够稳固 · {{ report.shaky|length }}</h3>
+            {% for r in report.shaky %}
+            <div class="unit-card lv-shaky">
+                <div class="uc-top">
+                    <span class="uc-name">{{ r.name }}</span>
+                    <span class="uc-acc">{{ r.accuracy }}%</span>
+                </div>
+                <div class="uc-meta">{{ r.module }} · {{ r.correct }}/{{ r.n }} 正确{% if r.low_confidence %} · 仅 1 题{% endif %}</div>
+                {% if r.kp_code %}<a class="uc-link" href="{{ base }}/knowledge/{{ r.kp_code }}">看知识点解析 →</a>{% endif %}
+            </div>
+            {% else %}
+            <p class="muted empty-col">没有需要巩固的项</p>
+            {% endfor %}
+        </section>
+
+        <section class="report-col">
+            <h3 class="col-title c-good">掌握扎实 · {{ report.good|length }}</h3>
+            {% for r in report.good %}
+            <div class="unit-card lv-good">
+                <div class="uc-top">
+                    <span class="uc-name">{{ r.name }}</span>
+                    <span class="uc-acc">{{ r.accuracy }}%</span>
+                </div>
+                <div class="uc-meta">{{ r.module }} · {{ r.correct }}/{{ r.n }} 正确</div>
+            </div>
+            {% else %}
+            <p class="muted empty-col">暂无</p>
+            {% endfor %}
+        </section>
+    </div>
+
+    {% if report.modules|length > 1 %}
+    <section class="report-block">
+        <h2>模块掌握度</h2>
+        <div class="module-bars">
+            {% for m in report.modules %}
+            <div class="module-row">
+                <span class="module-name">{{ m.name }}</span>
+                <div class="module-track">
+                    <i class="module-fill {{ 'lv-weak' if m.level == 'weak' else ('lv-shaky' if m.level == 'shaky' else 'lv-good') }}"
+                       style="width: {{ m.accuracy if m.accuracy > 3 else 3 }}%"></i>
+                </div>
+                <span class="module-acc">{{ m.accuracy }}%</span>
+                <span class="module-n">{{ m.n }} 题</span>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <section class="report-block">
+        <h2>错题复盘</h2>
+        {% set wrongs = items | selectattr('is_correct', 'equalto', 0) | list %}
+        {% if wrongs %}
+            {% for it in wrongs %}
+            <details class="wrong-card">
+                <summary>
+                    <span class="wc-seq">第 {{ it.seq }} 题</span>
+                    <span class="wc-unit">{{ it.unit_name }}</span>
+                    <span class="wc-ans">你答 <b class="wrong">{{ it.user_answer or '未答' }}</b> · 正确 <b class="right">{{ it.answer_text }}</b></span>
+                </summary>
+                <div class="wc-body">
+                    <div class="wc-stem">{{ it.stem | rich | safe }}</div>
+                    {% if it.options %}
+                    <div class="wc-options">
+                        {% for label, text in it.options.items() %}
+                        <div class="wc-opt {{ 'is-right' if label == it.answer_text else ('is-wrong' if label == it.user_answer else '') }}">
+                            <b>{{ label }}.</b> {{ text | rich | safe }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    {% if it.analysis_text %}
+                    <div class="wc-analysis"><b>解析：</b>{{ it.analysis_text | rich | safe }}</div>
+                    {% endif %}
+                </div>
+            </details>
+            {% endfor %}
+        {% else %}
+            <p class="muted">全部答对，没有错题。</p>
+        {% endif %}
+    </section>
+
+    <section class="report-actions">
+        <form method="post" action="{{ base }}/quiz/{{ session.session_id }}/consolidate" class="inline-form">
+            <label for="perUnit" class="muted">每个薄弱考点出</label>
+            <select name="per_unit" id="perUnit">
+                <option value="1">1 题</option>
+                <option value="2" selected>2 题</option>
+                <option value="3">3 题</option>
+            </select>
+            <button class="btn-quiz btn-primary btn-lg" type="submit">针对薄弱点生成巩固卷</button>
+        </form>
+        <div class="secondary-actions">
+            <a class="btn-quiz" href="{{ base }}/quiz/{{ session.session_id }}/paper?key=1" target="_blank">打印试卷（含答案）</a>
+            <a class="btn-quiz" href="{{ base }}/quiz">返回诊断中心</a>
+        </div>
+    </section>
+</div>
+</body>
+</html>

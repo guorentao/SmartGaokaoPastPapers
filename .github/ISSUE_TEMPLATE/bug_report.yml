@@ -1,0 +1,37 @@
+name: 程序缺陷
+description: 页面报错、测评流程走不通、下载失败
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: 发生了什么
+      description: 页面地址、点了什么、期望看到什么、实际看到什么
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: 复现步骤
+      placeholder: |
+        1. 打开 /quiz
+        2. 选「高一 上学期 数学」开始测评
+        3. 交卷后点「生成巩固卷」→ 500
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: 运行环境
+      placeholder: Windows 11 / Python 3.11 / 本地 uvicorn 或 Docker
+    validations:
+      required: false
+  - type: textarea
+    id: log
+    attributes:
+      label: 报错日志
+      description: 服务端 traceback 或浏览器控制台报错
+      render: shell
+    validations:
+      required: false

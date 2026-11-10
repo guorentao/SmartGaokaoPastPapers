@@ -1,0 +1,14 @@
+services:
+  web:
+    build: .
+    image: smart-gaokao-pastpapers:latest
+    container_name: smart-gaokao-pastpapers
+    ports:
+      - "8000:8000"
+    environment:
+      # 想挂到子路径（如 https://example.com/pastpapers/）时改成 /pastpapers
+      APP_BASE_PATH: ""
+    volumes:
+      # 把数据库放在宿主机，容器重建后测评记录还在；首次启动会自动重建
+      - ./database:/app/database
+    restart: unless-stopped

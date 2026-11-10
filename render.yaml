@@ -1,0 +1,17 @@
+# Render Blueprint：New → Blueprint → 选中本仓库即可一键上线
+# 免费套餐的容器文件系统是临时的：每次重新部署会用 data/ 重建题库，
+# 测评记录（quiz_sessions）不持久化；需要持久化请升级套餐并挂载 Disk。
+services:
+  - type: web
+    name: gaokao-pastpapers
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    autoDeployTrigger: commit
+    envVars:
+      - key: APP_BASE_PATH
+        value: ""
+      - key: TZ
+        value: Asia/Shanghai

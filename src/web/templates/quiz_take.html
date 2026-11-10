@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ session.title }} · 作答</title>
+    <link rel="stylesheet" href="{{ base }}/static/css/style.css">
+    {% include "_mathjax.html" %}
+</head>
+<body class="quiz-body">
+<div class="quiz-topbar">
+    <div class="qtb-left">
+        <span class="qtb-subject">{{ subject.subject_name }}</span>
+        <span class="qtb-title">{{ session.title }}</span>
+        {% if session.student_name or scope %}
+        <span class="qtb-student">
+            {% if session.student_name %}<b>{{ session.student_name }}</b>{% endif %}
+            {% if scope %} · {{ scope }}{% endif %}
+            {% if session.student_class %} · {{ session.student_class }}{% endif %}
+        </span>
+        {% endif %}
+    </div>
+    <div class="qtb-right">
+        <div class="qtb-progress"><span id="progressText">0 / {{ items|length }}</span>
+            <div class="qtb-bar"><i id="progressBar"></i></div>
+        </div>
+        <div class="qtb-timer" id="timer">00:00</div>
+        <button class="btn-quiz btn-primary" id="submitTop" type="button">交卷</button>
+    </div>
+</div>
+
+<div class="container quiz-container">
+    <div class="quiz-tip">
+        <b>作答说明：</b>共 {{ items|length }} 题，每题标注了对应知识点，答完点「交卷」查看诊断报告。未作答的题按错处理。
+        <a href="{{ base }}/quiz" class="link">放弃本次测评</a>
+    </div>
+
+    <form method="post" action="{{ base }}/quiz/{{ session.session_id }}/submit" id="quizForm">
+        <input type="hidden" name="_ts" value="0" id="tsInput">
+        {% for item in items %}
+        <div class="question-card" id="q{{ item.seq }}">
+            <div class="qc-head">
+                <div class="qc-index">{{ item.seq }}</div>
+                <div class="qc-meta">
+                    <span class="qc-unit">{{ item.unit_name or item.question_type }}</span>
+                    {% if item.year %}<span class="qc-year">{{ item.year }}{% if item.region %} · {{ item.region }}{% endif %}</span>{% endif %}
+                    <span class="qc-type">{{ item.grading == 'choice' and '单项选择' or '填空' }}</span>
+                </div>
+            </div>
+
+            <div class="qc-stem">{{ item.stem | rich | safe }}</div>
+
+            {% if item.grading == 'choice' %}
+            <div class="qc-options">
+                {% for label, text in item.options.items() %}
+                <label class="qc-option">
+                    <input type="radio" name="q{{ item.seq }}" value="{{ label }}">
+                    <span class="qc-radio">{{ label }}</span>
+                    <span class="qc-option-text">{{ text | rich | safe }}</span>
+                </label>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="qc-fill">
+                <input type="text" name="q{{ item.seq }}" class="qc-input" placeholder="填写答案后按 Enter 跳到下一题" autocomplete="off">
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        <div class="quiz-submit-bar">
+            <div class="muted">已答 <b id="answeredCount">0</b> / {{ items|length }} 题</div>
+            <button class="btn-quiz btn-primary btn-lg" type="submit">交卷并生成诊断报告</button>
+        </div>
+    </form>
+</div>
+
+<script>
+(function () {
+    var form = document.getElementById('quizForm');
+    var total = {{ items|length }};
+    var startTs = Date.now();
+    document.getElementById('tsInput').value = Math.floor(startTs / 1000);
+
+    function updateProgress() {
+        var answered = 0;
+        for (var i = 1; i <= total; i++) {
+            var radio = form.querySelector('input[type=radio][name="q' + i + '"]:checked');
+            var text = form.querySelector('input[type=text][name="q' + i + '"]');
+            if (radio || (text && text.value.trim())) answered++;
+        }
+        document.getElementById('progressText').textContent = answered + ' / ' + total;
+        document.getElementById('answeredCount').textContent = answered;
+        document.getElementById('progressBar').style.width = (answered / total * 100) + '%';
+    }
+    form.addEventListener('change', updateProgress);
+    form.addEventListener('input', updateProgress);
+    updateProgress();
+
+    setInterval(function () {
+        var s = Math.floor((Date.now() - startTs) / 1000);
+        document.getElementById('timer').textContent =
+            String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+    }, 1000);
+
+    form.addEventListener('submit', function (e) {
+        var answered = document.getElementById('answeredCount').textContent;
+        if (Number(answered) < total && !confirm('还有 ' + (total - Number(answered)) + ' 题未作答，未答按错计分。确定交卷？')) {
+            e.preventDefault();
+        }
+    });
+    document.getElementById('submitTop').addEventListener('click', function () {
+        form.requestSubmit();
+    });
+
+    // 填空/选项回车跳下一题
+    document.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter') return;
+        var card = e.target.closest('.question-card');
+        if (!card) return;
+        e.preventDefault();
+        var next = card.nextElementSibling;
+        while (next && !next.classList.contains('question-card')) next = next.nextElementSibling;
+        if (next) next.scrollIntoView({behavior: 'smooth', block: 'center'});
+    });
+
+    // 选项点击后自动滚动到下一题
+    form.querySelectorAll('.qc-option input').forEach(function (input) {
+        input.addEventListener('change', function () {
+            var card = input.closest('.question-card');
+            var next = card.nextElementSibling;
+            while (next && !next.classList.contains('question-card')) next = next.nextElementSibling;
+            if (next) setTimeout(function () { next.scrollIntoView({behavior: 'smooth', block: 'center'}); }, 150);
+        });
+    });
+})();
+</script>
+</body>
+</html>

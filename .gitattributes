@@ -1,0 +1,19 @@
+# 统一换行符，避免 Windows 上 clone 后 shell 脚本带 CRLF 导致容器启动失败
+* text=auto
+*.sh text eol=lf
+*.py text diff=python
+*.json text
+*.md text
+*.yml text
+*.yaml text
+*.html text
+*.css text
+*.js text
+
+# 二进制
+*.png binary
+*.jpg binary
+*.gif binary
+*.db binary
+*.zip binary
+*.docx binary

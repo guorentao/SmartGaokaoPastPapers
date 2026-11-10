@@ -1,0 +1,45 @@
+# macOS
+.DS_Store
+._*
+**/._*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 构建产物 / 运行输出（可由 data/ 下的种子数据重建，不入库）
+output/
+data/exports/
+assets/question_media/
+
+# 数据库（预构建库用 scripts/bootstrap.py 生成，或从 Release 下载）
+database/*.db
+database/*.db-shm
+database/*.db-wal
+database/*.bak*
+
+# 日志 / 临时
+*.log
+.tmp/
+/tmp/
+.env
+.env.*
+!/.env.example
+
+# 本地部署配置（含服务器信息）
+deploy/deploy.env

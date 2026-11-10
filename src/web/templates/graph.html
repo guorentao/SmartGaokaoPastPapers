@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ subject.subject_name }}知识图谱 - 高考真题库系统</title>
+    <link rel="stylesheet" href="{{ base }}/static/css/style.css">
+</head>
+<body class="graph-body">
+<div class="container">
+    <header class="header quiz-header">
+        <div class="quiz-header-top">
+            <div>
+                <nav class="breadcrumb"><a href="{{ base }}/">首页</a> / 知识图谱</nav>
+                <h1>🕸 {{ subject.subject_name }}知识图谱</h1>
+                <p class="subtitle">按册次与章节梳理知识点，箭头表示学习先后顺序，点开即可看解析与真题</p>
+            </div>
+            <nav class="quiz-nav">
+                <a href="{{ base }}/quiz">🎯 学情诊断</a>
+                <a href="{{ base }}/papers">📥 试卷下载</a>
+                <a href="{{ base }}/search">🔍 搜题</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <!-- 学科切换 -->
+        <section class="g-switch">
+            <div class="g-group">
+                <span class="g-group-label">小学</span>
+                {% for s in subjects if s.stage == 'primary' %}
+                <a class="g-tab {{ 'active' if s.subject_code == subject.subject_code else '' }}"
+                   href="{{ base }}/graph?subject={{ s.subject_code }}{% if grade %}&grade={{ grade }}{% endif %}">{{ s.subject_name }}</a>
+                {% endfor %}
+            </div>
+            <div class="g-group">
+                <span class="g-group-label">高中</span>
+                {% for s in subjects if s.stage != 'primary' %}
+                <a class="g-tab {{ 'active' if s.subject_code == subject.subject_code else '' }}"
+                   href="{{ base }}/graph?subject={{ s.subject_code }}">{{ s.subject_name }}</a>
+                {% endfor %}
+            </div>
+        </section>
+
+        {% if subject.stage == 'primary' %}
+        <section class="g-grades">
+            <a class="g-grade {{ 'active' if not grade else '' }}" href="{{ base }}/graph?subject={{ subject.subject_code }}">全部年级</a>
+            {% for g in range(1, 7) %}
+            <a class="g-grade {{ 'active' if grade == g else '' }}" href="{{ base }}/graph?subject={{ subject.subject_code }}&grade={{ g }}">{{ g }} 年级</a>
+            {% endfor %}
+        </section>
+        {% endif %}
+
+        <!-- 统计 -->
+        <section class="g-stats">
+            <div class="g-stat"><b>{{ stats.volumes }}</b><span>{{ '册' if subject.stage == 'primary' else '模块' }}</span></div>
+            <div class="g-stat"><b>{{ stats.chapters }}</b><span>章节</span></div>
+            <div class="g-stat"><b>{{ stats.kps }}</b><span>知识点</span></div>
+            <div class="g-stat"><b>{{ stats.questions }}</b><span>关联题目</span></div>
+            <div class="g-stat"><b>{{ stats.relations }}</b><span>前置关系</span></div>
+        </section>
+
+        <!-- 图谱主体 -->
+        <section class="g-map">
+            {% for vol in volumes %}
+            <details class="g-vol" {% if loop.index <= 2 %}open{% endif %}>
+                <summary>
+                    <span class="g-vol-name">{{ vol.name }}</span>
+                    <span class="g-vol-meta">{{ vol.chapters|length }} 章 · {{ vol.kp_count }} 知识点 · {{ vol.q_count }} 题</span>
+                </summary>
+                <div class="g-chapters">
+                    {% for ch in vol.chapters %}
+                    <div class="g-ch">
+                        <div class="g-ch-head">{{ ch.name }}</div>
+                        <div class="g-kps">
+                            {% for kp in ch.kps %}
+                            <a class="g-kp {{ 'has-q' if kp.q_count else '' }}" href="{{ base }}/knowledge/{{ kp.kp_id }}">
+                                <span class="g-kp-name">{{ kp.kp_name }}</span>
+                                {% if kp.q_count %}<span class="g-kp-q">{{ kp.q_count }}</span>{% endif %}
+                            </a>
+                            {% if not loop.last %}<span class="g-link" aria-hidden="true"></span>{% endif %}
+                            {% endfor %}
+                            {% if not ch.kps %}<span class="muted">（本章暂无知识点）</span>{% endif %}
+                        </div>
+                    </div>
+                    {% if not loop.last %}<div class="g-vol-arrow">↓</div>{% endif %}
+                    {% endfor %}
+                </div>
+            </details>
+            {% endfor %}
+            {% if not volumes %}
+            <p class="muted" style="padding:24px">该学科暂无可展示的知识图谱。</p>
+            {% endif %}
+        </section>
+
+        {% if relations %}
+        <details class="g-rels">
+            <summary>查看前置关系（{{ relations|length }} 条，箭头左侧是先学内容）</summary>
+            <div class="g-rel-list">
+                {% for r in relations %}
+                <div class="g-rel">
+                    <span class="g-rel-from">{{ r.f_name }}</span>
+                    <span class="g-rel-arrow">→</span>
+                    <a class="g-rel-to" href="{{ base }}/knowledge/{{ r.t_code }}">{{ r.t_name }}</a>
+                    {% if r.description %}<span class="g-rel-desc">{{ r.description }}</span>{% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </details>
+        {% endif %}
+
+        <section class="dl-note" style="margin-top:18px">
+            <h3>怎么看这张图</h3>
+            <ul>
+                <li>每一册（小学）或模块（高中）是一个可折叠区块，展开后按章节排列知识点。</li>
+                <li>知识点之间的箭头表示<b>学习顺序</b>：左边掌握后再学右边；标签上的数字表示该知识点关联的真题数量。</li>
+                <li>高亮边框的节点表示有真题可练，点进去可以看详细解析、历年真题和一键诊断。</li>
+            </ul>
+        </section>
+    </main>
+</div>
+</body>
+</html>
