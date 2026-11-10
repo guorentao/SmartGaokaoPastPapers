@@ -1469,5 +1469,6 @@ async def health():
 if __name__ == '__main__':
     import uvicorn
     host = os.environ.get("BIND_HOST", "0.0.0.0")
-    port = int(os.environ.get("BIND_PORT", "8000"))
+    # 云平台通常注入 PORT；本地开发仍可用 BIND_PORT
+    port = int(os.environ.get("BIND_PORT") or os.environ.get("PORT") or "8000")
     uvicorn.run(app, host=host, port=port)
