@@ -37,6 +37,7 @@ STAGE_LABELS = {'primary': '小学', 'junior': '初中', 'senior': '高中'}
 SEMESTERS = ('上', '下')
 GRADE_GROUPS = [
     ('primary', '小学', [1, 2, 3, 4, 5, 6]),
+    ('junior', '初中', [7, 8, 9]),
     ('senior', '高中', [10, 11, 12]),
 ]
 

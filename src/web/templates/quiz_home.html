@@ -123,6 +123,51 @@
         </section>
         {% endif %}
 
+        {% set junior = subjects | selectattr('stage', 'equalto', 'junior') | list %}
+        {% if junior %}
+        <section class="subject-section stage-block" data-stage="junior">
+            <h2>初中题库 <span class="stage-badge">初一 ~ 初三 · 中考</span></h2>
+            <div class="quiz-subject-grid">
+                {% for s in junior %}
+                <div class="quiz-subject-card" data-code="{{ s.subject_code }}" data-name="{{ s.subject_name }}">
+                    <div class="qsc-head">
+                        <span class="qsc-icon">{{ s.subject_code | get_subject_icon }}</span>
+                        <div>
+                            <div class="qsc-name">{{ s.subject_name }}</div>
+                            <div class="qsc-meta">可测 {{ s.units }} 个知识点 · {{ s.questions }} 道题</div>
+                        </div>
+                    </div>
+                    {% if s.mastery.n %}
+                    <div class="qsc-mastery">
+                        <div class="mastery-bar">
+                            {% set total = s.mastery.n or 1 %}
+                            <span class="mb-good" style="width: {{ (s.mastery.good / total * 100) | round(1) }}%"></span>
+                            <span class="mb-shaky" style="width: {{ (s.mastery.shaky / total * 100) | round(1) }}%"></span>
+                            <span class="mb-weak" style="width: {{ (s.mastery.weak / total * 100) | round(1) }}%"></span>
+                        </div>
+                        <div class="qsc-mastery-text">
+                            已测 {{ s.mastery.n }} 个考点 · 平均掌握 {{ s.mastery.avg_acc }}%
+                            {% if s.mastery.weak %}<span class="tag tag-weak">{{ s.mastery.weak }} 薄弱</span>{% endif %}
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="qsc-mastery-text muted">尚未测评</div>
+                    {% endif %}
+                    {% if s.questions > 0 %}
+                    <div class="qsc-actions">
+                        <button type="button" class="btn-quiz btn-sm" data-count="8">快速 8 题</button>
+                        <button type="button" class="btn-quiz btn-sm btn-primary" data-count="12">标准 12 题</button>
+                        <button type="button" class="btn-quiz btn-sm" data-count="16">加强 16 题</button>
+                    </div>
+                    {% else %}
+                    <div class="qsc-actions"><span class="muted">题库中暂无该学科可判分题目</span></div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
         {% set senior = subjects | selectattr('stage', 'equalto', 'senior') | list %}
         {% if senior %}
         <section class="subject-section stage-block" data-stage="senior">
@@ -241,6 +286,7 @@
     function stageOf(g) {
         g = Number(g);
         if (g >= 1 && g <= 6) return 'primary';
+        if (g >= 7 && g <= 9) return 'junior';
         if (g >= 10 && g <= 12) return 'senior';
         return '';
     }

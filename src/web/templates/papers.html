@@ -13,7 +13,7 @@
             <div>
                 <nav class="breadcrumb"><a href="{{ base }}/">首页</a> / 试卷下载中心</nav>
                 <h1>📥 试卷下载中心</h1>
-                <p class="subtitle">历年高考真题 · 一键下载 Word / 网页版（可直接打印）</p>
+                <p class="subtitle">高考真题 · 中考地区卷 · 小学期中期末卷 —— 一键下载 Word / 网页版（可直接打印）</p>
             </div>
             <nav class="quiz-nav">
                 <a href="{{ base }}/quiz">🎯 学情诊断</a>
@@ -28,29 +28,54 @@
         <section class="dl-hero">
             <div class="dl-hero-left">
                 <div class="dl-big">{{ total_papers }}</div>
-                <div class="dl-big-label">份真题试卷</div>
-                <div class="dl-hero-sub">共 {{ total_questions }} 道题目 · 覆盖 2010–2022 年九大学科</div>
+                <div class="dl-big-label">份试卷</div>
+                <div class="dl-hero-sub">
+                    共 {{ total_questions }} 道题目 ·
+                    高中 {{ stats.get('senior', {}).get('papers', 0) }} 份 ·
+                    初中 {{ stats.get('junior', {}).get('papers', 0) }} 份 ·
+                    小学 {{ stats.get('primary', {}).get('papers', 0) }} 份
+                </div>
             </div>
             <div class="dl-hero-actions">
-                <a class="btn-quiz btn-primary btn-lg" href="{{ base }}/papers/package?subject=all&fmt=docx">
-                    ⬇ 下载全部（Word 版·{{ total_papers }} 份）
+                <a class="btn-quiz btn-primary btn-lg" href="{{ base }}/papers/package?subject=all&fmt=docx&stage={{ cur.stage }}">
+                    ⬇ 下载当前学段全部（Word 版）
                 </a>
-                <a class="btn-quiz btn-lg" href="{{ base }}/papers/package?subject=all&fmt=html">
-                    ⬇ 下载全部（网页版，可打印 PDF）
+                <a class="btn-quiz btn-lg" href="{{ base }}/papers/package?subject=all&fmt=html&stage={{ cur.stage }}">
+                    ⬇ 下载当前学段全部（网页版，可打印 PDF）
                 </a>
-                <div class="dl-hint">打包文件含答案解析，按学科分文件夹，解压即用。</div>
+                <div class="dl-hint">打包文件含答案解析，按试卷分文件，解压即用。</div>
             </div>
+        </section>
+
+        <!-- 学段切换 -->
+        <section class="dl-stages">
+            {% for code, label in [('all','全部'), ('senior','高中·高考'), ('junior','初中·中考'), ('primary','小学')] %}
+            <a class="dl-stage {{ 'active' if cur.stage == code }}" href="{{ base }}/papers?stage={{ code }}">{{ label }}</a>
+            {% endfor %}
         </section>
 
         <!-- 筛选 -->
         <section class="dl-filter">
             <form method="get" action="{{ base }}/papers" class="inline-form">
+                <input type="hidden" name="stage" value="{{ cur.stage }}">
                 <label>学科
                     <select name="subject">
                         <option value="all" {% if cur.subject == 'all' %}selected{% endif %}>全部学科</option>
+                        <optgroup label="高中">
                         {% for s in subjects if s.stage == 'senior' %}
                         <option value="{{ s.subject_code }}" {% if cur.subject == s.subject_code %}selected{% endif %}>{{ s.subject_name }}</option>
                         {% endfor %}
+                        </optgroup>
+                        <optgroup label="初中">
+                        {% for s in subjects if s.stage == 'junior' %}
+                        <option value="{{ s.subject_code }}" {% if cur.subject == s.subject_code %}selected{% endif %}>{{ s.subject_name }}</option>
+                        {% endfor %}
+                        </optgroup>
+                        <optgroup label="小学">
+                        {% for s in subjects if s.stage == 'primary' %}
+                        <option value="{{ s.subject_code }}" {% if cur.subject == s.subject_code %}selected{% endif %}>{{ s.subject_name }}</option>
+                        {% endfor %}
+                        </optgroup>
                     </select>
                 </label>
                 <label>年份
@@ -62,17 +87,17 @@
                     </select>
                 </label>
                 <label>关键词
-                    <input type="text" name="q" value="{{ cur.q }}" placeholder="如：全国乙卷">
+                    <input type="text" name="q" value="{{ cur.q }}" placeholder="如：全国乙卷 / 北京 / 期中">
                 </label>
                 <button class="btn-quiz btn-primary" type="submit">筛选</button>
                 {% if cur.subject != 'all' or cur.year or cur.q %}
-                <a class="btn-quiz btn-sm" href="{{ base }}/papers">重置</a>
+                <a class="btn-quiz btn-sm" href="{{ base }}/papers?stage={{ cur.stage }}">重置</a>
                 {% endif %}
             </form>
             <div class="dl-filter-actions">
                 <span class="muted">当前结果 {{ papers|length }} 份</span>
-                <a class="btn-quiz btn-sm" href="{{ base }}/papers/package?subject={{ cur.subject }}&year={{ cur.year or '' }}&fmt=docx">打包下载当前筛选（Word）</a>
-                <a class="btn-quiz btn-sm" href="{{ base }}/papers/package?subject={{ cur.subject }}&year={{ cur.year or '' }}&fmt=html">打包下载（网页版）</a>
+                <a class="btn-quiz btn-sm" href="{{ base }}/papers/package?subject={{ cur.subject }}&year={{ cur.year or '' }}&fmt=docx&stage={{ cur.stage }}">打包下载当前筛选（Word）</a>
+                <a class="btn-quiz btn-sm" href="{{ base }}/papers/package?subject={{ cur.subject }}&year={{ cur.year or '' }}&fmt=html&stage={{ cur.stage }}">打包下载（网页版）</a>
             </div>
         </section>
 
@@ -113,6 +138,34 @@
             {% endif %}
         </section>
 
+        <!-- 小学期中期末卷 -->
+        {% if primary_exams %}
+        <section class="dl-primary">
+            <h2>小学期中 / 期末测试卷</h2>
+            <p class="muted">按册编排，一册两卷（期中、期末）。点击直接下载 Word（含答案与解析），可直接打印。</p>
+            <div class="dl-primary-grid">
+                {% for sub in primary_exams %}
+                <div class="dl-primary-card">
+                    <div class="dlp-head">{{ sub.subject_name }}</div>
+                    <div class="dlp-list">
+                        {% for c in sub.cells %}
+                        <div class="dlp-row">
+                            <span class="dlp-term">{{ c.label }}</span>
+                            {% if c.mid %}
+                            <a class="dlp-chip" href="{{ base }}/paper/{{ c.mid.paper_id }}/download?fmt=docx">期中 ⬇</a>
+                            {% endif %}
+                            {% if c.fin %}
+                            <a class="dlp-chip" href="{{ base }}/paper/{{ c.fin.paper_id }}/download?fmt=docx">期末 ⬇</a>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
         <!-- 小学练习卷 -->
         {% if primary %}
         <section class="dl-primary">
@@ -138,12 +191,13 @@
         {% endif %}
 
         <section class="dl-note">
-            <h3>关于这些试卷</h3>
+            <h3>这些试卷从哪来（请如实了解）</h3>
             <ul>
-                <li>题库来自 <b>GAOKAO-Bench</b> 公开数据集（2010–2022 年高考真题），由本项目导入并补全知识点解析。</li>
-                <li>每份试卷是该年度该地区、本系统<b>已收录的全部题目</b>，部分学科（如物理、地理）数据集本身只含客观题，因此题量少于原卷；卷头均标注实际题数。</li>
+                <li><b>高中·高考真题</b>：来自 <b>GAOKAO-Bench</b> 公开数据集（2010–2022 年，全国卷、新课标卷、全国甲乙丙卷等），由本项目导入并补全 538 个知识点的解析。每份卷是数据集中<b>该年度该地区本系统已收录的全部题目</b>，部分学科只含客观题，因此题量少于原卷，卷头标注实际题数。</li>
+                <li><b>初中·中考地区卷</b>：按北京、广东两地中考的<b>卷面结构与分值</b>编排的<b>仿真卷</b>（自建题目 + 答案解析），用于熟悉题型与难度梯度，<b>不是</b>当年真题原文。</li>
+                <li><b>小学期中/期末卷</b>：按人教版教材册次范围自建，计算题由程序按课标范围自动出题（答案经程序核算），其余题目人工编写并附解析。</li>
                 <li>下载的 Word 版含「题目 + 答案解析」；网页版打开后可点顶部按钮直接打印或另存为 PDF，公式用 MathJax 渲染。</li>
-                <li>如需不含答案的学生版，在下载链接后加 <code>&amp;answer=0</code>。</li>
+                <li>如需不含答案的学生版，在下载链接后加 <code>&amp;answer=0</code>。欢迎通过仓库 Issue 提交你手上的真题或纠错。</li>
             </ul>
         </section>
     </main>

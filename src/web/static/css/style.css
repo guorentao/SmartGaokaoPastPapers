@@ -1817,3 +1817,22 @@ a.weak-name:hover { color: var(--q-primary); text-decoration: underline; }
     .dl-hero-actions { min-width: 100%; }
     .dl-table th:nth-child(4), .dl-table td:nth-child(4) { display: none; }
 }
+
+/* ---- 试卷中心：学段切换 + 小学期中期末 ---- */
+.dl-stages { display: flex; gap: 8px; flex-wrap: wrap; margin: 18px 0 0; }
+.dl-stage {
+    padding: 7px 16px; border-radius: 999px; font-size: 13px; text-decoration: none;
+    border: 1px solid var(--q-border); color: var(--q-muted); background: #fff;
+    transition: all .15s;
+}
+.dl-stage:hover { border-color: var(--q-primary); color: var(--q-primary); }
+.dl-stage.active { background: var(--q-primary); border-color: var(--q-primary); color: #fff; font-weight: 600; }
+
+.dlp-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px dashed var(--q-border); }
+.dlp-row:last-child { border-bottom: 0; }
+.dlp-term { flex: 1; font-size: 13px; color: var(--q-text); }
+.dlp-chip {
+    font-size: 12px; padding: 3px 10px; border-radius: 999px; text-decoration: none;
+    background: #eef1ff; color: var(--q-primary); border: 1px solid #dde2ff;
+}
+.dlp-chip:hover { background: var(--q-primary); color: #fff; }

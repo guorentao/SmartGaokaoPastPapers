@@ -27,11 +27,14 @@ TYPE_ORDER = ['选择题', '填空题', '名篇名句默写', '文言文阅读',
               '语法填空', '短文改错', '解答题', '材料分析题', '论述题']
 
 
-def fetch_papers(conn, subject_code=None, year=None, keyword=None):
-    sql = '''SELECT p.*, s.subject_code, s.subject_name,
+def fetch_papers(conn, subject_code=None, year=None, keyword=None, stage=None):
+    sql = '''SELECT p.*, s.subject_code, s.subject_name, COALESCE(s.stage,'senior') AS stage,
                     (SELECT COUNT(*) FROM questions q WHERE q.paper_id=p.id) AS q_count
              FROM papers p JOIN subjects s ON s.id=p.subject_id WHERE 1=1'''
     args = []
+    if stage and stage != 'all':
+        sql += " AND COALESCE(s.stage,'senior')=?"
+        args.append(stage)
     if subject_code and subject_code != 'all':
         sql += ' AND s.subject_code=?'
         args.append(subject_code)
@@ -46,19 +49,44 @@ def fetch_papers(conn, subject_code=None, year=None, keyword=None):
 
 
 def fetch_paper(conn, paper_id):
-    row = conn.execute('''SELECT p.*, s.subject_code, s.subject_name FROM papers p
-                          JOIN subjects s ON s.id=p.subject_id WHERE p.paper_id=?''', (paper_id,)).fetchone()
+    row = conn.execute('''SELECT p.*, s.subject_code, s.subject_name, COALESCE(s.stage,'senior') AS stage
+                          FROM papers p JOIN subjects s ON s.id=p.subject_id WHERE p.paper_id=?''',
+                       (paper_id,)).fetchone()
     if not row:
         return None, []
     paper = dict(row)
-    return paper, load_questions(conn, paper['id'])
+    return paper, load_questions(conn, paper['id'], order_of(paper))
 
 
-def load_questions(conn, paper_db_id):
-    rows = conn.execute('''SELECT question_id, question_number, question_type, question_text,
-                                  options_json, answer_text, analysis_text
+def order_of(paper):
+    """高考真题按题型归类；自建卷（中考/小学）按题号顺序"""
+    if paper.get('stage') in ('junior', 'primary'):
+        return 'number'
+    return 'type'
+
+
+def source_note(paper):
+    """卷头说明：区分「真题还原」与「自建试卷」，别让读者误解"""
+    stage = paper.get('stage') or 'senior'
+    if stage == 'primary':
+        return ('说明：本卷按人教版教材册次范围编写，计算题由程序按课标范围自动出题，'
+                '其余题目与解析由本项目维护；答案与解析见卷末。')
+    if stage == 'junior':
+        return ('说明：本卷为按该地区中考卷面结构与分值编排的仿真卷，题目与解析由本项目编写，'
+                '用于熟悉题型与难度，不是当年真题原文；答案与解析见卷末。')
+    return ('说明：本卷由「高考真题库系统」从收录题库还原生成，含本题库收录的该卷题目，'
+            '可能不含当年原卷全部大题；答案与解析见卷末。')
+
+
+def footer_note():
+    return '题库来源：GAOKAO-Bench 公开数据集（高中）· 中考/小学自建题库'
+
+
+def load_questions(conn, paper_db_id, order='type'):
+    rows = conn.execute('''SELECT question_id, question_number, question_type, question_section,
+                                  question_text, options_json, answer_text, analysis_text
                            FROM questions WHERE paper_id=?''', (paper_db_id,)).fetchall()
-    return items_from_rows(rows)
+    return items_from_rows(rows, order)
 
 
 CTRL_RE = re.compile(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]')
@@ -69,7 +97,7 @@ def clean(text):
     return CTRL_RE.sub('', str(text or ''))
 
 
-def items_from_rows(rows):
+def items_from_rows(rows, order='type'):
     items = []
     for r in rows:
         stem, opts = qe.split_mcq(r['question_text'], r['options_json'])
@@ -79,13 +107,17 @@ def items_from_rows(rows):
             'qid': r['question_id'],
             'num': r['question_number'] or '',
             'type': clean(r['question_type'] or '题目'),
+            'section': clean(r['question_section'] or ''),
             'stem': clean(stem),
             'options': {k: clean(v) for k, v in (opts or {}).items()},
             'answer': clean((r['answer_text'] or '').strip()),
             'analysis': clean((r['analysis_text'] or '').strip()),
         })
-    items.sort(key=lambda x: (TYPE_ORDER.index(x['type']) if x['type'] in TYPE_ORDER else 99,
-                              _num_key(x['num']), x['qid']))
+    if order == 'number':
+        items.sort(key=lambda x: (_num_key(x['num']), x['qid']))
+    else:
+        items.sort(key=lambda x: (TYPE_ORDER.index(x['type']) if x['type'] in TYPE_ORDER else 99,
+                                  _num_key(x['num']), x['qid']))
     return items
 
 
@@ -99,8 +131,11 @@ def paper_title(paper):
 
 
 def file_stem(paper):
-    title = f"{paper.get('year')}年高考{paper.get('subject_name')}（{paper.get('region')}）"
-    return re.sub(r'[\\/:*?"<>|\s]+', '', title)
+    """下载文件名：优先用卷面标题，兼容高考/中考/小学各学段"""
+    title = paper.get('paper_title') or (
+        f"{paper.get('year') or ''}年{paper.get('subject_name') or ''}"
+        f"（{paper.get('region') or ''}）")
+    return re.sub(r'[\\/:*?"<>|\s]+', '', str(title))
 
 
 # ---------------------------------------------------------------- HTML
@@ -162,11 +197,12 @@ def paper_html(paper, items, with_answer=True, standalone=True):
     """生成独立 HTML 试卷（可直接浏览器打开、打印为 PDF）"""
     title = paper_title(paper)
     q_html = []
-    cur_type = None
+    cur_group = None
     for i, it in enumerate(items, 1):
-        if it['type'] != cur_type:
-            cur_type = it['type']
-            q_html.append(f'<div class="sec-title">{_esc(cur_type)}</div>')
+        group = it['section'] or it['type']
+        if group != cur_group:
+            cur_group = group
+            q_html.append(f'<div class="sec-title">{_esc(group)}</div>')
         opts = ''
         if it['options']:
             cells = ''.join(
@@ -200,12 +236,11 @@ def paper_html(paper, items, with_answer=True, standalone=True):
     <span>姓名：____________</span><span>班级：____________</span>
     <span>日期：____________</span><span>得分：__________</span>
   </div>
-  <div class="paper-note">说明：本卷由「高考真题库系统」从收录题库还原生成，含该年度该地区本题库收录的全部题目（{len(items)} 题），
-  可能不包含当年原卷的全部大题。题目按题型归类排序，答案与解析见卷末。</div>
+  <div class="paper-note">{_esc(source_note(paper))}（共 {len(items)} 题）</div>
   {''.join(q_html)}
   {ans_html}
   <div class="paper-meta" style="margin-top:34px;color:#888;font-size:12px;">
-    <span>题库：GAOKAO-Bench 公开数据集 · 解析补全：高考真题库系统</span>
+    <span>{_esc(footer_note())}</span>
     <span>导出时间：{datetime.now().strftime('%Y-%m-%d %H:%M')}</span>
   </div>
 </div>'''
@@ -257,17 +292,17 @@ def paper_docx(paper, items, with_answer=True):
     _set_cn_font(p.add_run('姓名：____________　　班级：____________　　日期：____________　　得分：__________'), '宋体', 9)
 
     p = doc.add_paragraph()
-    _set_cn_font(p.add_run('说明：本卷由「高考真题库系统」从收录题库还原生成，'
-                           f'含本题库收录的 {len(items)} 道题目，可能不含当年原卷全部大题；'
-                           '答案与解析见卷末。'), '楷体', 8.5)
+    _set_cn_font(p.add_run(source_note(paper)), '楷体', 8.5)
 
-    cur_type = None
+    cur_group = None
     for i, it in enumerate(items, 1):
-        if it['type'] != cur_type:
-            cur_type = it['type']
+        group = it['section'] or it['type']
+        if group != cur_group:
+            cur_group = group
             p = doc.add_paragraph()
             p.paragraph_format.space_before = Pt(8)
-            _set_cn_font(p.add_run(f'【{cur_type}】'), '黑体', 10.5, True)
+            text = it['section'] if it['section'] else f'【{it["type"]}】'
+            _set_cn_font(p.add_run(text), '黑体', 10.5, True)
         num = it['num'] or i
         p = doc.add_paragraph()
         p.paragraph_format.space_before = Pt(3)
@@ -299,7 +334,7 @@ def paper_docx(paper, items, with_answer=True):
 
     p = doc.add_paragraph()
     p.paragraph_format.space_before = Pt(16)
-    _set_cn_font(p.add_run(f'题库来源：GAOKAO-Bench 公开数据集 · 导出于 {datetime.now().strftime("%Y-%m-%d %H:%M")}'),
+    _set_cn_font(p.add_run(f'{footer_note()} · 导出于 {datetime.now().strftime("%Y-%m-%d %H:%M")}'),
                  '宋体', 8)
 
     buf = io.BytesIO()
@@ -313,11 +348,12 @@ def paper_markdown(paper, items, with_answer=True):
     lines = [f'# {paper_title(paper)}', '',
              f'- 学科：{paper.get("subject_name")}',
              f'- 年份：{paper.get("year")}　地区：{paper.get("region")}',
-             f'- 题数：{len(items)}（本题库收录部分）', '', '---', '']
+             f'- 题数：{len(items)}', '', f'> {source_note(paper)}', '', '---', '']
     cur = None
     for i, it in enumerate(items, 1):
-        if it['type'] != cur:
-            cur = it['type']
+        group = it['section'] or it['type']
+        if group != cur:
+            cur = group
             lines += [f'## {cur}', '']
         num = it['num'] or i
         lines.append(f'**{num}.** {it["stem"]}')

@@ -6,10 +6,12 @@
   data/gaokao_bench/*.json   GAOKAO-Bench 高考真题（2010-2022，九科）
   data/kp_content/*.json     538 个知识点的解析正文
   data/primary/*.json        小学三科题库 + 图谱编排表
+  data/primary/exams/*.json  小学期中/期末卷（计算题由脚本按课标自动生成）
+  data/junior/*.json         初中（中考）地区仿真卷：知识点 + 试卷 + 题目
 
 用法:
   python scripts/bootstrap.py            # 已有库则跳过前两步，补齐缺失数据
-  python scripts/bootstrap.py --force    # 删库重建（约 2-4 分钟）
+  python scripts/bootstrap.py --force    # 删库重建（约 5 秒）
   python scripts/bootstrap.py --check    # 只做数据校验，不写库
 
 产物: database/gaokao.db
@@ -33,15 +35,17 @@ STEPS = [
     ('重建题目-知识点关联', ['scripts/relink_kp.py', '--apply']),
     ('导入小学题库', ['scripts/import_primary.py']),
     ('构建小学知识图谱', ['scripts/build_primary_graph.py']),
+    ('生成小学期中/期末卷', ['scripts/build_primary_exams.py']),
+    ('导入中考试卷', ['scripts/import_junior.py']),
 ]
 
 EXPECT = [
-    ('subjects', 12, '学科（高中 9 + 小学 3）'),
-    ('papers', 251, '试卷'),
-    ('questions', 2845, '题目（高考 2653 + 小学 192）'),
-    ('knowledge_points', 698, '知识点（高中 538 + 小学 160）'),
-    ('question_kp_relations', 2300, '题目-知识点关联'),
-    ('kp_relations', 130, '知识点前置关系'),
+    ('subjects', 17, '学科（高中 9 + 初中 5 + 小学 3）'),
+    ('papers', 325, '试卷（高考 251 + 中考 10 + 小学 64）'),
+    ('questions', 3249, '题目（高考 2653 + 初中 80 + 小学 516）'),
+    ('knowledge_points', 748, '知识点（高中 538 + 初中 50 + 小学 160）'),
+    ('question_kp_relations', 2470, '题目-知识点关联'),
+    ('kp_relations', 141, '知识点前置关系'),
 ]
 
 

@@ -109,6 +109,45 @@ python scripts/relink_kp.py            # 先看 dry-run 统计
 python scripts/relink_kp.py --apply    # 确认合理再写库
 ```
 
+### 3.3 中考卷（`data/junior/*.json`）
+
+每个学科一个文件（`j_math.json`、`j_chinese.json`……），含知识点、试卷、题目三部分：
+
+```json
+{
+  "subject_code": "j_math",
+  "subject_name": "初中数学",
+  "sort_order": 51,
+  "kps":     [{"code": "JMA-01", "name": "实数与科学记数法", "content": "……"}],
+  "papers":  [{"paper_id": "ZK-2024-BJ-MATH", "title": "2024年北京市中考数学仿真卷",
+               "year": 2024, "region": "北京", "duration": 120, "score": 100}],
+  "questions": [{"paper": "ZK-2024-BJ-MATH", "no": 1, "type": "选择题", "stem": "……",
+                 "options": ["A内容","B内容","C内容","D内容"], "answer": "C",
+                 "analysis": "……", "kp": "JMA-01", "score": 2}]
+}
+```
+
+- 题号用 `no`（整数），导入后按试卷分组写入 `paper_id`，`/papers` 里直接可见
+- **如果你手上是真题**：把 `paper_version` 改成 `"真题"`，并在 PR 里注明来源与年份——真题会优先替换同位置的仿真卷
+- 导入：`python scripts/import_junior.py`
+
+### 3.4 小学期中 / 期末卷（`data/primary/exams/*.json`）
+
+```json
+{
+  "subject_code": "p_math",
+  "exams": [{"paper_id": "PMA-G2A-FIN", "title": "小学数学二年级上册 期末测试卷",
+             "grade": 2, "semester": "上", "exam_type": "期末",
+             "duration": 60, "score": 100, "calc": "g2a",
+             "questions": [{"type": "填空题", "section": "四、填空", "stem": "……",
+                            "answer": "……", "analysis": "……", "kp": "PMA-G2A03"}]}]
+}
+```
+
+- `calc` 是计算题生成器标识（`g1a`~`g6b`，对应各册课标范围），脚本会按卷号做种子生成「直接写得数 / 竖式 / 脱式」三类题并**自动核算答案**；不需要你写计算题
+- 同一学科可拆多个文件（如语文按 1–3、4–6 年级分两个文件），导入脚本会按学科合并
+- 导入：`python scripts/build_primary_exams.py`
+
 ---
 
 ## 4. 改进知识点匹配

@@ -1,0 +1,110 @@
+{
+  "subject_code": "j_english",
+  "subject_name": "初中英语",
+  "description": "中考英语：语法、完形、阅读与书面表达，按地区卷面结构编排",
+  "sort_order": 53,
+  "kps": [
+    {"code": "JEN-01", "name": "名词与冠词", "content": "可数名词复数的不规则变化；a/an 看读音不看字母；the 的特指与固定搭配。"},
+    {"code": "JEN-02", "name": "代词与数词", "content": "人称、物主、反身、不定代词；基数词与序数词，hundred/thousand 的用法。"},
+    {"code": "JEN-03", "name": "形容词与副词", "content": "比较级与最高级的构成与句型（than、as…as、one of the + 最高级）；much/even/far 修饰比较级。"},
+    {"code": "JEN-04", "name": "动词时态", "content": "一般现在时（第三人称单数）、一般过去时、现在进行时、一般将来时、现在完成时（for/since/already/yet）。"},
+    {"code": "JEN-05", "name": "被动语态", "content": "be + 过去分词；一般现在/过去/将来时的被动；含情态动词的被动。"},
+    {"code": "JEN-06", "name": "情态动词与非谓语", "content": "can/must/may/need/should 的推测与义务；动词不定式与动名词作宾语（want to do、enjoy doing）。"},
+    {"code": "JEN-07", "name": "复合句", "content": "宾语从句（语序与时态呼应）、定语从句（who/which/that）、状语从句（if/when/because/although）。"},
+    {"code": "JEN-08", "name": "词汇与固定搭配", "content": "词形转换（名词复数、序数词、副词）、常见动词短语（look after、give up、be good at 等）。"},
+    {"code": "JEN-09", "name": "情景交际", "content": "问候、建议、邀请、道歉、打电话等交际用语，答语要符合英语习惯而非中式直译。"},
+    {"code": "JEN-10", "name": "阅读与写作", "content": "细节查找、推理判断、主旨大意；书面表达注意要点齐全、时态一致、连词衔接与字数要求。"}
+  ],
+  "papers": [
+    {"paper_id": "ZK-2024-BJ-ENG", "title": "2024年北京市中考英语仿真卷（笔试部分）", "year": 2024, "region": "北京",
+     "exam_type": "中考英语", "version": "仿真卷（京派结构：单选+完形+阅读+表达，笔试60分）", "duration": 90, "score": 60},
+    {"paper_id": "ZK-2024-GD-ENG", "title": "2024年广东省中考英语仿真卷（笔试部分）", "year": 2024, "region": "广东",
+     "exam_type": "中考英语", "version": "仿真卷（粤派结构：单选+完形+阅读+表达，笔试90分）", "duration": 100, "score": 90}
+  ],
+  "questions": [
+    {"paper": "ZK-2024-BJ-ENG", "no": 1, "type": "选择题", "score": 1, "difficulty": 1,
+     "stem": "— Where is Tom?\n— He ______ basketball on the playground now.",
+     "options": ["plays", "is playing", "played", "has played"], "answer": "B",
+     "analysis": "时间状语 now 提示现在进行时，结构为 be + doing，主语 He 用 is，故选 B。", "kp": "JEN-04"},
+
+    {"paper": "ZK-2024-BJ-ENG", "no": 2, "type": "选择题", "score": 1, "difficulty": 2,
+     "stem": "This is ______ useful book. I read it every day.",
+     "options": ["a", "an", "the", "/"], "answer": "A",
+     "analysis": "useful 虽以元音字母 u 开头，但读音为 /ˈjuːsfl/，以辅音音素开头，故用 a。选 A。", "kp": "JEN-01"},
+
+    {"paper": "ZK-2024-BJ-ENG", "no": 3, "type": "选择题", "score": 1, "difficulty": 2,
+     "stem": "My sister is much ______ than me.",
+     "options": ["tall", "taller", "tallest", "the tallest"], "answer": "B",
+     "analysis": "有 than 说明是比较级，much 修饰比较级，tall 的比较级为 taller，故选 B。", "kp": "JEN-03"},
+
+    {"paper": "ZK-2024-BJ-ENG", "no": 4, "type": "选择题", "score": 1, "difficulty": 2,
+     "stem": "The new library ______ in 2019, and it is very popular now.",
+     "options": ["built", "was built", "is built", "builds"], "answer": "B",
+     "analysis": "图书馆是被建造的，用被动语态；in 2019 表示过去，故用一般过去时的被动 was built。选 B。", "kp": "JEN-05"},
+
+    {"paper": "ZK-2024-BJ-ENG", "no": 5, "type": "完形填空", "score": 3, "difficulty": 2,
+     "stem": "阅读短文，从每题所给选项中选出最佳答案。\nLi Hua is a middle school student. Every morning he gets up at six and (1)______ to school by bike. He says riding a bike is good for his (2)______. Last week he (3)______ a bike race in his school and won first prize.",
+     "options": ["(1) A. go　B. goes　C. went　D. going", "(2) A. health　B. money　C. homework　D. weather",
+                 "(3) A. joins　B. joined　C. will join　D. is joining"],
+     "answer": "(1) B　(2) A　(3) B",
+     "analysis": "(1) 主语 he 为第三人称单数，一般现在时用 goes；(2) 骑车有益于健康，选 health；(3) Last week 表过去，用 joined。", "kp": "JEN-04"},
+
+    {"paper": "ZK-2024-BJ-ENG", "no": 6, "type": "阅读理解", "score": 2, "difficulty": 2,
+     "stem": "阅读短文，选择最佳答案。\nIn our school, students go to school in different ways. About half of them take the school bus because it is safe and fast. Some students live near the school, so they walk there every day. A few students ride bikes, but they must wear helmets. Our teacher says walking and riding are good exercise.\nHow do about half of the students go to school?",
+     "options": ["On foot.", "By bus.", "By bike.", "By car."], "answer": "B",
+     "analysis": "文中“About half of them take the school bus”直接说明约一半学生乘校车，故选 B。", "kp": "JEN-10"},
+
+    {"paper": "ZK-2024-BJ-ENG", "no": 7, "type": "填空题", "score": 3, "difficulty": 2,
+     "stem": "用括号内所给词的适当形式填空。\n（1）There are many ______ (child) playing in the park.\n（2）This is the ______ (three) time I have read the book.\n（3）He sings much ______ (well) than his brother.",
+     "answer": "（1）children　（2）third　（3）better",
+     "analysis": "（1）many 后接可数名词复数，child 的复数为 children；（2）表示“第三次”用序数词 third；（3）than 提示比较级，well 的比较级是 better。", "kp": "JEN-08"},
+
+    {"paper": "ZK-2024-BJ-ENG", "no": 8, "type": "书面表达", "score": 10, "difficulty": 3,
+     "stem": "假如你是李华，你的英国笔友 Peter 想知道你的周末安排。请用英语写一封邮件，告诉他你周末通常做什么、最喜欢的活动及原因，并邀请他假期来中国。词数 60—80。",
+     "answer": "参考范文：\nDear Peter,\nI'm glad to hear from you. Let me tell you about my weekend. On Saturday morning I usually do my homework, and in the afternoon I play basketball with my friends. On Sunday I often read books and help my parents do some housework. My favourite activity is playing basketball, because it keeps me healthy and helps me make friends.\nWould you like to come to China during the holiday? I'll show you around.\nYours,\nLi Hua",
+     "analysis": "书信写作三要点：称呼与落款齐全、要点（活动+最喜欢的+原因+邀请）不缺、时态以一般现在时为主；用 and、because 等连词衔接。", "kp": "JEN-10"},
+
+    {"paper": "ZK-2024-GD-ENG", "no": 1, "type": "选择题", "score": 2, "difficulty": 2,
+     "stem": "I ______ in this city since 2015.",
+     "options": ["live", "lived", "have lived", "will live"], "answer": "C",
+     "analysis": "since + 时间点与现在完成时连用，表示从过去持续到现在，结构为 have/has + 过去分词。选 C。", "kp": "JEN-04"},
+
+    {"paper": "ZK-2024-GD-ENG", "no": 2, "type": "选择题", "score": 2, "difficulty": 2,
+     "stem": "— Must I finish the work today?\n— No, you ______. You can do it tomorrow.",
+     "options": ["mustn't", "needn't", "can't", "shouldn't"], "answer": "B",
+     "analysis": "Must 引导的一般疑问句，否定回答用 needn't（不必），而 mustn't 表示“禁止”，语气不符。选 B。", "kp": "JEN-06"},
+
+    {"paper": "ZK-2024-GD-ENG", "no": 3, "type": "选择题", "score": 2, "difficulty": 3,
+     "stem": "Could you tell me ______?",
+     "options": ["where is the museum", "where the museum is", "where was the museum", "where the museum was"], "answer": "B",
+     "analysis": "宾语从句要用陈述语序，即“连接词 + 主语 + 谓语”，且主句为现在时，从句可用现在时。故选 B。", "kp": "JEN-07"},
+
+    {"paper": "ZK-2024-GD-ENG", "no": 4, "type": "选择题", "score": 2, "difficulty": 2,
+     "stem": "My grandfather is good at ______ chess, and he often teaches me.",
+     "options": ["play", "plays", "playing", "to play"], "answer": "C",
+     "analysis": "be good at 中的 at 是介词，后接动词 -ing 形式，故用 playing。选 C。", "kp": "JEN-08"},
+
+    {"paper": "ZK-2024-GD-ENG", "no": 5, "type": "完形填空", "score": 4, "difficulty": 3,
+     "stem": "阅读短文，从每题所给选项中选出最佳答案。\nLast summer, Amy went to a small village to help the children there. She found that many of them had never (1)______ a computer. So she decided to teach them how to use one. At first the children were shy, but soon they became (2)______ in it. On the last day, a girl said to her, “Thank you. You opened a (3)______ for us.” Amy (4)______ that helping others made her happier than anything else.",
+     "options": ["(1) A. seen　B. see　C. saw　D. seeing", "(2) A. boring　B. interested　C. angry　D. tired",
+                 "(3) A. door　B. window　C. box　D. bag", "(4) A. forgot　B. realized　C. refused　D. doubted"],
+     "answer": "(1) A　(2) B　(3) B　(4) B",
+     "analysis": "(1) had never + 过去分词构成过去完成时，用 seen；(2) become interested in 表示“对……感兴趣”；(3) open a window for us 是比喻“为我们打开一扇窗”；(4) realized 表示“意识到”。", "kp": "JEN-04"},
+
+    {"paper": "ZK-2024-GD-ENG", "no": 6, "type": "阅读理解", "score": 3, "difficulty": 3,
+     "stem": "阅读短文，选择最佳答案。\nMany people believe that the best way to learn a language is to use it. Maria, a student from Spain, agrees. She came to China last year knowing only a few Chinese words. Instead of taking too many classes, she made friends with her neighbours and practised speaking with them every day. Six months later, she could talk with shopkeepers and order food by herself. “Textbooks are useful,” she says, “but real conversations taught me more.”\nWhat does Maria think is the best way to learn a language?",
+     "options": ["Taking as many classes as possible.", "Using the language in real life.",
+                 "Reading textbooks carefully.", "Living with other foreign students."], "answer": "B",
+     "analysis": "首句“the best way to learn a language is to use it”与末句“real conversations taught me more”共同说明她的观点是在真实生活中使用语言，故选 B。", "kp": "JEN-10"},
+
+    {"paper": "ZK-2024-GD-ENG", "no": 7, "type": "填空题", "score": 4, "difficulty": 2,
+     "stem": "根据句意，用括号内所给词的适当形式填空。\n（1）The ______ (leaf) turn yellow in autumn.\n（2）He runs ______ (fast) than any other boy in his class.\n（3）We had a ______ (wonder) time at the party.\n（4）Please write down your ______ (address) so that I can send you the book.",
+     "answer": "（1）leaves　（2）faster　（3）wonderful　（4）address / addresses",
+     "analysis": "（1）leaf 的复数为 leaves；（2）than 提示比较级 faster；（3）修饰名词 time 用形容词 wonderful；（4）address 单复数均可，写成 addresses 亦可。", "kp": "JEN-08"},
+
+    {"paper": "ZK-2024-GD-ENG", "no": 8, "type": "书面表达", "score": 12, "difficulty": 4,
+     "stem": "学校英语报正在征文，主题为“A Small Habit That Changed Me”。请你写一篇短文投稿，内容包括：这个习惯是什么、你是如何坚持的、它给你带来了什么变化。词数 80 左右。",
+     "answer": "参考范文：\nA Small Habit That Changed Me\nReading for twenty minutes before bed is the habit that changed me.\nAt first I often felt sleepy and wanted to give up. To keep going, I put a book on my pillow every morning and turned off my phone at nine. Slowly, twenty minutes became forty, and reading became part of my day.\nNow I have read more than thirty books. My Chinese is better, my mind is calmer, and I have learned to think before I speak. A small habit, a big change.",
+     "analysis": "征文要紧扣三问：什么习惯—怎么坚持—带来什么变化；用 At first、Slowly、Now 等时间标志词体现变化过程，结尾点题。", "kp": "JEN-10"}
+  ]
+}

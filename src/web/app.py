@@ -1027,7 +1027,7 @@ async def quiz_home(request: Request, err: str = "", grade: int = 2, semester: s
     subjects = []
     for s in conn.execute('SELECT id, subject_code, subject_name, stage FROM subjects '
                           'ORDER BY CASE COALESCE(stage,\'senior\') WHEN \'primary\' THEN 0 '
-                          'WHEN \'senior\' THEN 1 ELSE 2 END, sort_order, id'):
+                          'WHEN \'junior\' THEN 1 WHEN \'senior\' THEN 2 ELSE 3 END, sort_order, id'):
         stage = s['stage'] or 'senior'
         item = {
             'subject_code': s['subject_code'], 'subject_name': s['subject_name'],
@@ -1040,6 +1040,11 @@ async def quiz_home(request: Request, err: str = "", grade: int = 2, semester: s
             picked = ready.get(grade) if grade in ready else ready.get(3, 0)
             item['questions'] = picked or 0
             item['units'] = _readiness(conn, s['id'], grade if grade in ready else 3, None)['units']
+        elif stage == 'junior':
+            # 中考题库统一按初三范围组织，初一初二也能练
+            r = _readiness(conn, s['id'], 9, None)
+            item['ready'] = {}
+            item['questions'], item['units'] = r['questions'], r['units']
         else:
             r = _readiness(conn, s['id'])
             item['ready'] = {}
@@ -1079,8 +1084,9 @@ async def quiz_start(request: Request):
 
     stage = sub['stage'] or 'senior'
     grade = student['grade']
-    # 学段不匹配时不套用年级范围（避免高中题库被空过滤）
-    if stage != qe.stage_of_grade(grade):
+    if stage == 'junior':
+        grade = 9   # 中考卷统一按初三范围出题，初一初二也能练
+    elif stage != qe.stage_of_grade(grade):
         grade = None
     n = max(5, min(count, 40))
     questions = qe.sample(conn, sub['id'], n, grade=grade, semester=student['semester'])
@@ -1211,9 +1217,10 @@ def _primary_paper(conn, subject_code, grade, sem):
                        (subject_code,)).fetchone()
     if not sub:
         return None, []
-    rows = conn.execute('''SELECT question_id, question_number, question_type, question_text,
-                                  options_json, answer_text, analysis_text
+    rows = conn.execute('''SELECT question_id, question_number, question_type, question_section,
+                                  question_text, options_json, answer_text, analysis_text
                            FROM questions WHERE subject_id=? AND grade=? AND semester=?
+                             AND paper_id IS NULL
                            ORDER BY id''', (sub['id'], int(grade), sem)).fetchall()
     if not rows:
         return None, []
@@ -1226,31 +1233,42 @@ def _primary_paper(conn, subject_code, grade, sem):
         'region': f'{grade}年级{sem}册',
         'paper_version': '单元练习',
         'subject_code': subject_code,
+        'stage': 'primary',
     }
-    return paper, pe.items_from_rows(rows)
+    return paper, pe.items_from_rows(rows, order='number')
 
 
 @app.get("/papers", response_class=HTMLResponse)
 async def papers_page(request: Request, subject: str = "all", year: Optional[str] = None,
-                      q: Optional[str] = None):
-    """试卷下载中心：列出全部真题，支持筛选与批量打包"""
+                      q: Optional[str] = None, stage: str = "all"):
+    """试卷下载中心：高/初/小三个学段统一检索，支持筛选与批量打包"""
+    import re as _re
     conn = get_db()
     try:
         year_val = int(year) if year and str(year).isdigit() else None
         kw = (q or '').strip() or None
-        papers = pe.fetch_papers(conn, subject, year_val, kw)
+        papers = pe.fetch_papers(conn, subject, year_val, kw, stage)
         subjects = [dict(r) for r in conn.execute(
             'SELECT subject_code, subject_name, stage FROM subjects ORDER BY sort_order')]
-        years = [r[0] for r in conn.execute('SELECT DISTINCT year FROM papers ORDER BY year DESC')]
+        years = [r[0] for r in conn.execute(
+            'SELECT DISTINCT year FROM papers WHERE year IS NOT NULL ORDER BY year DESC')]
         total_papers = conn.execute('SELECT COUNT(*) FROM papers').fetchone()[0]
         total_questions = conn.execute('SELECT COUNT(*) FROM questions').fetchone()[0]
 
-        primary = []
+        stats = {}
+        for r in conn.execute('''SELECT COALESCE(s.stage,'senior') st,
+                                        COUNT(DISTINCT p.id) papers, COUNT(q.id) questions
+                                 FROM subjects s LEFT JOIN papers p ON p.subject_id=s.id
+                                 LEFT JOIN questions q ON q.paper_id=p.id GROUP BY st'''):
+            stats[r['st']] = {'papers': r['papers'] or 0, 'questions': r['questions'] or 0}
+
+        primary, primary_exams = [], []
         for s in subjects:
             if s['stage'] != 'primary':
                 continue
             rows = conn.execute('''SELECT grade, semester, COUNT(*) n FROM questions
                 WHERE subject_id=(SELECT id FROM subjects WHERE subject_code=?)
+                  AND paper_id IS NULL
                 GROUP BY grade, semester ORDER BY grade, semester''', (s['subject_code'],)).fetchall()
             if rows:
                 primary.append({
@@ -1258,6 +1276,28 @@ async def papers_page(request: Request, subject: str = "all", year: Optional[str
                     'subject_code': s['subject_code'],
                     'rows': [{'grade': r[0], 'semester': r[1], 'n': r[2]} for r in rows],
                 })
+
+            exams = conn.execute('''SELECT p.paper_id, p.paper_title, p.paper_type, p.region,
+                                           p.total_questions, p.duration
+                                    FROM papers p
+                                    WHERE p.subject_id=(SELECT id FROM subjects WHERE subject_code=?)
+                                      AND p.paper_type IN ('期中','期末')
+                                    ORDER BY p.paper_id''', (s['subject_code'],)).fetchall()
+            if not exams:
+                continue
+            cells = {}
+            for r in exams:
+                m = _re.match(r'(\d)年级(.)册', r['region'] or '')
+                if not m:
+                    continue
+                key = (int(m.group(1)), m.group(2))
+                cells.setdefault(key, {})['mid' if r['paper_type'] == '期中' else 'fin'] = dict(r)
+            primary_exams.append({
+                'subject_name': s['subject_name'],
+                'subject_code': s['subject_code'],
+                'cells': [{'label': f'{g}年级{sem}册', 'mid': v.get('mid'), 'fin': v.get('fin')}
+                          for (g, sem), v in sorted(cells.items())],
+            })
     finally:
         conn.close()
 
@@ -1267,8 +1307,10 @@ async def papers_page(request: Request, subject: str = "all", year: Optional[str
         "papers": papers,
         "total_papers": total_papers,
         "total_questions": total_questions,
+        "stats": stats,
         "primary": primary,
-        "cur": {"subject": subject, "year": year_val, "q": q or ""},
+        "primary_exams": primary_exams,
+        "cur": {"subject": subject, "year": year_val, "q": q or "", "stage": stage},
     })
 
 
@@ -1327,7 +1369,7 @@ async def paper_download(paper_id: str, fmt: str = "docx", answer: int = 1):
 
 @app.get("/papers/package")
 async def papers_package(subject: str = "all", year: Optional[str] = None,
-                         fmt: str = "docx", answer: int = 1):
+                         fmt: str = "docx", answer: int = 1, stage: str = "all"):
     """按筛选条件打包下载（zip），结果缓存到 data/exports"""
     fmt = fmt.lower()
     if fmt not in ('docx', 'html', 'md'):
@@ -1335,18 +1377,18 @@ async def papers_package(subject: str = "all", year: Optional[str] = None,
     year_val = int(year) if year and str(year).isdigit() else None
     conn = get_db()
     try:
-        papers = pe.fetch_papers(conn, subject, year_val)
+        papers = pe.fetch_papers(conn, subject, year_val, None, stage)
         with_q = [p for p in papers if p['q_count'] > 0]
         if not with_q:
             raise HTTPException(status_code=404, detail="没有可导出的试卷")
         subj_name = with_q[0]['subject_name'] if subject != 'all' else '全部学科'
-        label = f"{subj_name}_{year_val or '2010-2022'}"
-        key = f"papers_{subject}_{year_val or 'all'}_{fmt}_{int(bool(answer))}"
+        label = f"{subj_name}_{year_val or '全部年份'}"
+        key = f"papers_{subject}_{year_val or 'all'}_{fmt}_{int(bool(answer))}_{stage}"
         path = pe.cached_zip(key, lambda: pe.build_zip(with_q, conn, fmt, bool(answer)))
     finally:
         conn.close()
 
-    zip_name = f"高考真题_{label}_{fmt}.zip"
+    zip_name = f"试卷_{label}_{fmt}.zip"
     headers = {'Content-Disposition': f"attachment; filename=papers.zip; filename*=UTF-8''{quote(zip_name)}"}
     return FileResponse(path, media_type='application/zip', filename=zip_name, headers=headers)
 
